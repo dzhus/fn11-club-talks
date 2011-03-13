@@ -1,0 +1,305 @@
+\documentclass[onlymath]{beamer}
+\usepackage{fontspec}
+\usepackage{xunicode,xltxtra}
+\usepackage{polyglossia}
+\usepackage{xltxtra}
+\usepackage{fancybox}
+\usepackage{graphicx}
+
+\usepackage{tikz}
+\usetikzlibrary{calc,through,positioning,patterns,decorations.markings,shapes}
+\tikzset{dot/.style={circle,fill=black,scale=0.5}}
+\usepackage{pgfplots}
+
+\usepackage{listings}
+\lstset{language=[LaTeX]TeX, basicstyle=\scriptsize\ttfamily, escapechar=|, frame=single}
+
+\newcommand{\abs}[1]{\left \lvert{#1}\right \rvert}
+\newcommand\tw\textwidth
+\newcommand\neword\emph
+\newcommand\code\texttt
+\renewcommand\epsilon\varepsilon
+\newcommand{\cenfig}[2]{\begin{figure}\centering\includegraphics[scale=#1]{#2}
+  \end{figure}}
+  
+\usefonttheme{professionalfonts}
+\usetheme[secheader]{Boadilla}
+\usecolortheme{whale}
+
+\setsansfont[Mapping=tex-text]{Myriad Pro}
+\setmonofont[Mapping=tex-text]{DejaVu Sans Mono}
+\setmainlanguage{russian}
+
+\title{Технические иллюстрации в LaTeX с PGF/TikZ}
+\author{Дмитрий Джус}
+\institute{АК-101}
+\date{16 февраля 2011}
+
+\begin{document}
+
+\begin{frame}
+  \titlepage
+\end{frame}
+
+\begin{frame}
+  \frametitle{План}
+  \tableofcontents
+\end{frame}
+
+\section{Система вёрстки LaTeX}
+
+\begin{frame}[fragile]
+  \frametitle{За что мы любим \LaTeX{}}
+  \begin{columns}
+    \column{.4\textwidth}
+\begin{lstlisting}
+% преамбула
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage[russian]{babel}
+\begin{document}
+% документ
+  \begin{equation}
+  \frac{\pi}{2} = \sum {a_i}
+  \end{equation}
+\end{document}
+\end{lstlisting}
+    \column{.55\textwidth}
+    \begin{itemize}
+    \item Свободная и популярная система вёрстки разных печатных
+      материалов, доступная для разных ОС
+
+    \item Документы хранятся в текстовых файлах, которые содержат
+      специальную разметку
+
+    \item Из исходных файлов компилируются PDF-документы, пригодные
+      для просмотра или печати
+    \end{itemize}
+  \end{columns}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Возможности}
+  \begin{itemize}
+  \item Возможности для прекрасной типографики
+  \item Разметка математических формул
+    \begin{equation}
+      \frac{\pi^4}{2}\int_{-\infty}^\infty{\abs{f(x^{k+1})-f(x^k)}}\, dx=\sum_{\lambda_i^+>0} \sqrt{\left\{\xi_{i,k}^2
+        \lambda_i^+ [1-R^2(\lambda_i^+)]\right\}}
+    \end{equation}
+  
+  \item Инструменты структурирования текста для последующего создания
+    оглавлений и перекрёстных ссылок на главы, формулы, рисунки
+
+  \item Поощряется стилевое оформление документа
+
+  \item Язык разметки легко дополняется собственными конструкциями
+    различного назначения
+
+  \item Вёрстка материалов различных форматов и назначений (статьи,
+    книги, презентации)
+
+  \item Огромное количество пакетов расширения
+  \end{itemize}
+\end{frame}
+
+\section{Пакет расширения PGF/TikZ}
+\begin{frame}
+  \frametitle{Проблемы иллюстрирования}
+  \begin{itemize}
+  \item Проблемы с растровыми картинками при масштабировании
+  \item Создание графики в сторонних программах затрудняет внедрение
+    иллюстраций
+  \item Чужеродные текстовые подписи
+  \item Технические иллюстрации со сложной геометрической структурой
+    не всегда удобно создавать вручную
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{PGF/TikZ}
+  \begin{itemize}
+  \item Позволяет \emph{описывать} иллюстрации прямо в теле
+    LaTeX-документа с помощью мини-языка
+
+  \item Набор графических примитивов (точка, линия, окружность,
+    кривая)
+
+  \item Различные координатные системы, в том числе связанные с
+    элементами иллюстрации
+
+  \item Выполнение геометрических операций вроде поиска пересечения
+    линий или касательной к окружности
+
+  \item Глубокие возможности по настройке внешнего вида элементов
+    (форма линий, штриховка областей, стрелки)
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Пример 1}
+  \begin{figure}[!h]
+    \centering
+    \begin{tikzpicture}
+      \coordinate [] (O) at (0, 0) {};
+      \coordinate [] (X) at (1, 0.5) {};
+      \draw[thick, dashed] (O) -- (X)
+       node[sloped, above, pos=0.5] {$r < \epsilon$};
+      \node[draw, thick, circle through=(X)] (circle) at (O) {};
+    \end{tikzpicture}
+  \end{figure}
+\begin{lstlisting}
+    \begin{tikzpicture}
+      % координаты
+      \coordinate (O) at (0, 0) {};
+      \coordinate (X) at (1, 1.5) {};
+
+      % отрезок
+      \draw[thick, dashed] (O) -- (X)
+      % подпись
+       node[sloped, above] {$r < \epsilon$};
+
+      % окружность
+      \node[draw, thick, dashed, circle through=(X)] (circle) at (O) {};
+    \end{tikzpicture}
+\end{lstlisting}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Пример 2}
+    \begin{figure}[!h]
+    \centering
+    \begin{tikzpicture}
+      % узлы
+      \coordinate (O) at (-2, 0) {};
+      \node[draw, shape=circle, dashed] (A1) [] at (O) {$A_1$};
+      \node[draw, shape=rectangle] (A2) [] at ($ (O) + (1, 1) $) {$A_2$};
+      \node[draw, shape=star, thick] (A3) [] at ($ (O) + (170:5) $) {$A_3$};
+
+      \draw[->] (A1.west) -- (A3.east);
+      \draw[thick, <->] (A1.north) to[out=90, in=150] (A2.west);
+    \end{tikzpicture}
+  \end{figure}
+\begin{lstlisting}
+\begin{tikzpicture}
+  % узлы
+  \coordinate (O) at (-2, 0) {};
+  \node[draw, shape=circle, dashed] (A1) at (O) {$A_1$};
+  \node[draw, shape=rectangle] (A2) at ($ (O) + (1, 1) $) {$A_2$};
+  \node[draw, shape=star] (A3) at ($ (O) + (170:5) $) {$A_3$};
+
+  \draw[->] (A1.west) -- (A3.east);
+  \draw[thick, <->] (A1.north) to[out=90, in=150] (A2.west);
+\end{tikzpicture}
+\end{lstlisting}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Пример 3: модель Клейна в круге}
+  \input{klein-model.tkz}
+\end{frame}
+
+
+\begin{frame}[fragile]
+  \frametitle{Пример 4: связь моделей Клейна и Пуанкаре}
+  \input{klein-to-poincare.tkz}
+\end{frame}
+
+\section{Графики вместе с pgfplots}
+\begin{frame}
+  \frametitle{Мощный пакет для графиков}
+
+  \begin{itemize}
+  \item Является расширением PGF/TikZ
+  \item Позволяет строить графики поточечно, по аналитическому
+    выражению или из файла
+  \item Двух- и трёхмерные графики, различные стили представления
+  \end{itemize}
+
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Пример}
+   \begin{figure}[!h]
+    \centering
+    \begin{tikzpicture}
+      \begin{axis}[
+        y=.3cm,
+        ytick={-3.14, 0, 3.14},
+        yticklabels={$-\pi$, $0$, $\pi$}]
+        \addplot[dashed, draw=black] coordinates{(-5,-1) (-3.4,2) (2,3)};
+        \addplot[thick, draw=black, samples=50] {pi*sin(deg(x))};
+      \end{axis}
+    \end{tikzpicture}
+  \end{figure}
+\begin{lstlisting}
+\begin{tikzpicture}
+  \begin{axis}[
+    y=.3cm,
+    ytick={-3.14, 0, 3.14},
+    yticklabels={$-\pi$, $0$, $\pi$}]
+    % точки
+    \addplot[dashed, draw=black] coordinates{(-5,-1) (-3.4,2) (2,3)};
+    % функция
+    \addplot[thick, draw=black, samples=50] {pi*sin(deg(x))};
+  \end{axis}
+\end{tikzpicture}
+\end{lstlisting}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Пример: чтение файла}
+   \begin{figure}[!h]
+    \centering
+    \begin{tikzpicture}
+      \begin{axis}[y=2cm]
+        \addplot file {pts.txt};
+      \end{axis}
+    \end{tikzpicture}
+  \end{figure}
+  \begin{itemize}
+  \item 
+\begin{lstlisting}[linewidth=.8\textwidth]
+        \addplot file {pts.txt};
+\end{lstlisting}
+    
+  \item Файл содержит два ряда точек и может генерироваться любой
+    внешней расчётной программой
+  \item Можно связать генерацию файла данных и компиляцию
+    LaTeX-документа, сократив количество ручных операций
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Пример: чтение файла, трёхмерные данные}
+  \begin{figure}[!h]
+    \centering
+    \begin{tikzpicture}
+      \begin{axis}[height=5cm,
+        view={0}{90}, xlabel=$x$, ylabel=$t$, ticks=none,
+        colormap/blackwhite, colorbar]
+        \addplot3[surf] file {result.txt};
+      \end{axis}
+    \end{tikzpicture}
+  \end{figure}
+  \begin{itemize}
+  \item 
+\begin{lstlisting}[linewidth=.8\textwidth]
+    \begin{axis}[view={0}{90},
+      xlabel=$x$, ylabel=$t$,
+      ticks=none, colormap/blackwhite, colorbar]
+      \addplot3[surf] file {result.txt};
+    \end{axis}
+\end{lstlisting}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Просмотр реальных примеров}
+  \begin{itemize}
+  \item Связь документа и расчётной программы позволяет сразу получать
+    отчёт о работе, который достоверен и отражает настоящие результаты
+  \end{itemize}
+\end{frame}
+
+\end{document}

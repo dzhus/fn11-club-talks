@@ -1,0 +1,79 @@
+\begin{figure}[!hbt]
+  \centering
+  \begin{tikzpicture}[scale=1.6]
+    \coordinate (O) at (0, 0) {};
+    
+    % Klein model points
+    \coordinate (P) at (-1.42, .04) {};
+    \coordinate (Q) at (-0.933,-0.48) {};
+
+    % Projections onto sphere
+    \coordinate (Ps) at (-1.42,-.85) {};
+    \coordinate (Qs) at (-0.93,-1.3) {};
+
+    % Sphere poles
+    \coordinate [label=above:$N$] (N) at (0, 2) {};
+    \coordinate (S) at (0, -2) {};
+
+    % Disk control points
+    \coordinate [] (L) at ($ (O)-(2,0) $) {};
+    \coordinate [] (R) at ($ (O)+(2,0) $) {};
+
+    % Projection lines
+    \draw (P)--(Ps);
+    \coordinate (Pp)
+                at (intersection of Ps--N and O--P);                
+    \draw (Ps)--(Pp);
+    \draw (Q)--(Qs);
+    \coordinate (Qp)
+                at (intersection of Qs--N and O--Q);                
+    \draw (Qs)--(Qp);
+
+ 
+    % Fade lower hemisphere                 
+    \path [fill=white, opacity=.5]
+                (L) to[out=270,in=180] (S)
+                    to[out=0,in=270] (R)
+                    (O) ellipse(2 and 1);
+
+     % Klein disk
+    \draw [opacity=.3, pattern=north east lines]
+               (O) ellipse(2 and 1);
+    \draw [thick] (O) ellipse(2 and 1);
+
+    % Chord
+    \coordinate [dot] (X) at (-1.8,0.4358) {};
+    \coordinate [dot] (Y) at (-0.464,-0.97) {};
+    \draw[] (X)--(Y);
+    \draw[] (X) to[out=-15,in=135,looseness=.9] (Pp)
+                to [out=315,in=120,looseness=.7] (Qp)
+                to[out=300,in=65,looseness=.8] (Y);
+                    
+    % Visible projection lines
+    \draw (Pp)--(N);
+    \draw (P)--(O);
+    \draw (Qp)--(N);
+    \draw (Q)--(O);
+
+    % Sphere
+    \draw[thick] (O) circle(2);
+
+    % labels placed last
+    \begin{scope}[inner sep=2pt]
+      \node [label=below:$X$] at (X){};
+      \node [label=below:$Y$] at (Y){};
+      \node [label=right:$O$] at (O){};
+      \node [label=left:$P$] at (P){};
+      \node [label=left:$Q$] at (Q){};
+      \node [label=above:$P^\prime$] at (Pp){};
+      \node [inner sep=4pt,label=right:$Q^\prime$] at (Qp){};
+      \node [label=below:$P_s$] at (Ps){};
+      \node [label=below:$Q_s$] at (Qs){};
+    \end{scope}
+    
+    % dot marks
+    \foreach \p in {O,P,Pp,Q,Qp,N} \draw node[dot] at (\p) {};
+    \node[dot,color=gray] at (Ps) {};
+    \node[dot,color=gray] at (Qs) {};
+  \end{tikzpicture}
+\end{figure}
