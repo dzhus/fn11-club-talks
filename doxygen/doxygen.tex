@@ -1,0 +1,244 @@
+\documentclass[onlymath]{beamer}
+\usepackage{fontspec}
+\usepackage{xunicode,xltxtra}
+\usepackage{polyglossia}
+\usepackage{xltxtra}
+\usepackage{fancybox}
+\usepackage{graphicx}
+
+\usepackage{listings}
+\lstset{language=c++, basicstyle=\scriptsize\ttfamily, escapechar=|, frame=single}
+
+\newcommand{\abs}[1]{\left \lvert{#1}\right \rvert}
+\newcommand\tw\textwidth
+\newcommand\neword\emph
+\newcommand\code\texttt
+\renewcommand\epsilon\varepsilon
+\newcommand{\cenfig}[2]{\begin{figure}\centering\includegraphics[scale=#1]{#2}
+  \end{figure}}
+\newcommand\good{{\color{green!50!black} \textbf{+}}}
+\newcommand\bad{{\color{red!50!black} \textbf{--}}}
+  
+\usefonttheme{professionalfonts}
+\usetheme[secheader]{Boadilla}
+\usecolortheme{whale}
+
+\setsansfont[Mapping=tex-text]{Myriad Pro}
+\setmonofont[Mapping=tex-text]{DejaVu Sans Mono}
+\setmainlanguage{russian}
+
+\title{Документирование кода и Doxygen}
+\author{Дмитрий Джус}
+\institute{АК-101}
+\date{27 апреля 2011}
+
+\begin{document}
+
+\begin{frame}
+  \titlepage
+\end{frame}
+
+\begin{frame}
+  \frametitle{План}
+  \tableofcontents
+\end{frame}
+
+\section{Общие вопросы}
+
+\begin{frame}[fragile]
+  \frametitle{Зачем документировать код}
+  \begin{itemize}
+  \item Код приходится читать гораздо чаще, чем писать
+
+  \item Работа в коллективе предусматривает отсутствие скрытых знаний
+
+  \item Программируем осмысленно
+
+  \item Помимо сопроводительной записки к библиотеке, простейшая
+    документация — комментарии в коде
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Основные принципы}
+  \begin{itemize}
+  \item Документация и код — разные представления одной сущности
+
+  \item Не повторяйте очевидное.
+
+    Бесполезные комментарии только вредят:
+\begin{lstlisting}
+/// Increase i
+i++;
+\end{lstlisting}
+    
+  \item Важно поддерживать актуальность описаний
+
+  \item У хорошего кода хорошая документация
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Жизнь и смерть}
+  \begin{itemize}
+  \item Код живёт, пока с ним кто-то может работать
+  \item Как работать с непонятным кодом?
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \begin{itemize}
+    \frametitle{Простой текст}
+    
+  \item Рукописные заметки в сторонних текстовых файлах
+    (\texttt{README}, \texttt{/usr/src/linux/Documentation})
+    
+  \item \good{} Просто и быстро писать
+  \item \bad{} Отсутствие структурирования
+  \item \bad{} Может устареть    
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Структурные форматы}
+  \begin{itemize}
+  \item Какой-либо специальный формат для описания документации
+    (LaTeX, DocBook, Texinfo и другие)
+  \item Используются и заточенные под конкретный проект XML-языки
+    (Gentoo Guide-XML)
+  \item Экспорт в разные форматы представления (HTML, PDF, info и
+    прочие)
+
+  \item \good{} Структурность
+  \item \bad{} Может устареть
+  \item \bad{} Неудобно писать
+  \end{itemize}
+\end{frame}
+
+\section{Doxygen}
+
+\begin{frame}
+  \frametitle{Документация из комментариев}
+  \begin{itemize}
+  \item Всё началось с Javadoc, теперь есть Doxygen, gtk-doc и другие
+  \item Основная идея: внешняя программа обрабатывает исходные тексты
+    программы, генерируя по ним документацию
+  \item В комментариях помимо обычного текста используются конструкции
+    со специальным значением
+  \item \good{} Пишем код и документацию одновременно
+  \item \good{} Обработка автоматизирована
+  \item \good{} Поддерживаются разные языки программирования
+  \item \good{} Несколько форматов вывода: HTML, PDF, man, XML
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Простой пример}
+  \begin{itemize}
+  \item Doxygen извлекает информацию о функциях, классах и методах, а
+    также комментарии вида
+    \begin{lstlisting}
+      /// comment
+      /** comment */
+    \end{lstlisting}
+    \begin{lstlisting}
+      /// Discrete Fourier transform for N points
+      void dft(float *x_real, float *x_imag, const int N);
+    \end{lstlisting}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Как пользоваться}
+  \begin{itemize}
+  \item Создаём в корне проекта конфигурационный файл (\texttt{Doxyfile})
+\begin{lstlisting}
+doxygen -g
+\end{lstlisting}
+  \item Изменяем настройки в \texttt{Doxyfile}
+  \item Запускаем doxygen
+\begin{lstlisting}
+doxygen
+\end{lstlisting}
+  \item Смотрим получившуюся документацию
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Ссылки}
+  \begin{itemize}
+  \item Doxygen обрабатывает всё дерево проекта и может создавать
+    перекрестные ссылки
+    \begin{lstlisting}
+      /// Fast Fourier transform for N points
+      /// @see dft
+      void fft(float *x_real, float *x_imag, const int N);
+    \end{lstlisting}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Документация методов}
+  \begin{itemize}
+  \item Ключевое слово \texttt{@param} задаёт описание аргумента метода
+    \begin{lstlisting}
+/// Fast Fourier transform for N points
+///
+/// @param x_real Real parts
+/// @param x_image Imaginary parts
+/// @param N Points in sample
+void fft(float *x_real, float *x_imag, const int N);
+    \end{lstlisting}
+  \item Ключевое слово \texttt{@return} ставится перед описанием
+    возвращаемого значения, а \texttt{@throws} — перед вызываемым
+    исключением
+\begin{lstlisting}
+/// @return Amount of prime numbers in array
+/// @throws PrimeCountException
+int count_primes(int *n, const int len);
+\end{lstlisting}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Списки задач}
+  \begin{itemize}
+  \item Ключевые слова \texttt{@todo} и \texttt{@bug} позволяют
+    отметить существующие проблемы в коде
+\begin{lstlisting}
+/// @todo Rewrite using Miller-Rabin algorithm
+int count_primes(int *n, const int len);
+\end{lstlisting}
+\begin{lstlisting}
+/// @bug Fails when no primes are present
+int count_primes(int *n, const int len);
+\end{lstlisting}
+  \item Опции \texttt{GENERATE\_TODOLIST} и \texttt{GENERATE\_BUGLIST}
+    управляют генерацией списков задач или проблем по коду
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Генерация графов зависимостей}
+  \begin{itemize}
+  \item Опции \texttt{HAVE\_DOT}, \texttt{CLASS\_GRAPH},
+    \texttt{CALL\_GRAPH}, \texttt{CALLER\_GRAPH},
+    \texttt{GRAPHICAL\_HIERARCHY} управляют генерацией графов
+    зависимостей между классами и вызовов функций
+  \item Используется утилита \texttt{dot} из пакета Graphviz
+  \item Ключевое слово @dot позволяет вставить вручную описание графа
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Многие другие возможности}
+  \begin{itemize}
+  \item Индексы по имеющимся в проекте методам, классам
+  \item Форматирование текста документации (\texttt{@b}, \texttt{@c},
+    \texttt{@e}, а также подмножество HTML)
+  \item HTML-шаблоны настраиваются
+  \item Условная вставка документации в зависимости от выходного формата
+  \end{itemize}
+\end{frame}
+
+\end{document}
