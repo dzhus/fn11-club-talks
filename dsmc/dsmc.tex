@@ -76,22 +76,98 @@
   \frametitle{Простая модель одноатомного газа}
   \begin{itemize}
   \item Трёхмерное пространство с молекулами
-  \item Твёрдые сферы постоянного диаметра $d$ и массы $m$, обладающие
-    положением $\vec{x}(t)$ и скоростью $\vec{c}(t)$
+  \item У каждой молекулы есть положение $\vec{x}(t)$ и тепловая
+    скорость $\vec{c}(t)$
   \item Положения и скорости меняются от взаимодействия частиц между
     собой и действия внешних сил
-  \item Применяя методы \emph{классической механики}, зная
-    $\vec{x}(t_0)$, $\vec{c}(t_0)$ для каждой частицы, можно найти
-    зависимости $\vec{x}(t)$, $\vec{c}(t)$ (метод \emph{молекулярной
-      динамики})
+  \item \textbf{Задача}: найти $\vec{x}(t)$, $\vec{c}(t)$ для частиц в
+    расчётной области
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{ВИА Частицы}
+  \begin{figure}
+    \centering
+    \begin{tikzpicture}
+      \coordinate (O) at (0, 0);
+      \coordinate (A) at ($ (O) + (1, 1) $);
+      \coordinate (B) at ($ (O) + (-2, -0.1) $);
+      \coordinate (C) at ($ (O) + (1.7, -0.5) $);
+      \coordinate (D) at ($ (O) + (0.1, -1.5) $);
+      \draw[ultra thick] ($ (O) + (-3, -2) $) -- ++(6, 0) -- ++(0, 4) -- ++(-6, 0) --
+      ++(0, -4);
+
+      \node[draw, shape=circle] at (A) {};
+      \draw[->] (A) -- ++(0.3, 0.3);
+      \node[draw, shape=circle] at (B) {};
+      \draw[->] (B) -- ++(-0.4, 0.5);
+      \node[draw, shape=circle] at (C) {};
+      \draw[->] (C) -- ++(0.3, -0.5);
+      \node[draw, shape=circle] at (D) {};
+      \draw[->] (D) -- ++(0.1, 0.6);
+    \end{tikzpicture}
+  \end{figure}
+  \begin{itemize}
+  \item (в проекции на 2D)
+  \item Помимо $\vec{x}$ и $\vec{c}$ у частицы могут быть другие
+    степени свободы (зависит от модели)
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Полезная симметрия уравнения Больцмана}
+  \begin{figure}
+    \centering
+      \begin{tikzpicture}[scale=0.7]
+      \coordinate (O) at (0, 0);
+      \coordinate (A) at ($ (O) + (1, 1) $);
+      \coordinate (B) at ($ (O) + (-2, -0.1) $);
+      \coordinate (C) at ($ (O) + (1.7, -0.5) $);
+      \coordinate (D) at ($ (O) + (0.1, -1.5) $);
+      \coordinate (E) at ($ (O) + (0.3, -0.5) $);
+      \coordinate (F) at ($ (O) + (0.1, -1.5) $);
+      \coordinate (G) at ($ (O) + (-1, 1.5) $);
+      \coordinate (H) at ($ (O) + (-0.8, 1.0) $);
+
+      \draw[ultra thick] ($ (O) + (-3, -2) $) -- ++(6, 0) -- ++(0, 4) -- ++(-6, 0) --
+      ++(0, -4);
+
+      \node[draw, shape=circle] at (A) {};
+      \node[draw, shape=circle] at (B) {};
+      \node[draw, shape=circle] at (C) {};
+      \node[draw, shape=circle] at (D) {};
+      \node[draw, shape=circle] at (E) {};
+      \node[draw, shape=circle] at (F) {};
+      \node[draw, shape=circle] at (G) {};
+      \node[draw, shape=circle] at (H) {};
+
+      \coordinate (O') at (7, 0);
+      \coordinate (A') at ($ (O') + (1, 1) $);
+      \coordinate (B') at ($ (O') + (-2, -0.1) $);
+      \coordinate (D') at ($ (O') + (0.1, -1.5) $);
+      \draw[ultra thick] ($ (O') + (-3, -2) $) -- ++(6, 0) -- ++(0, 4) -- ++(-6, 0) --
+      ++(0, -4);
+
+      \node[draw, shape=circle, scale=1.5] at (A') {};
+      \node[draw, shape=circle, scale=1.5] at (B') {};
+      \node[draw, shape=circle, scale=1.5] at (D') {};
+    \end{tikzpicture}
+  \end{figure}
+  \begin{itemize}
+  \item Если в двух ансамблях $n_1 \sigma_1 = n_2 \sigma_2$, то
+    частота столкновений одинакова
+  \item Поэтому большое количество частиц со статистическим весом $1$
+    можно \emph{моделировать} меньшим количеством «депутатов» с весом $W$
+  \item Например, $n = 10^{21}$, $W = 10^{15}$ — нужно $10^6$
+    депутатов
   \end{itemize}
 \end{frame}
 
 \begin{frame}
   \frametitle{Макроскопические параметры}
   \begin{itemize}
-  \item Микроскопические параметры отдельных молекул интересны чуть
-    менее, чем никак
+  \item Микроскопические параметры отдельных молекул нам совсем не интересны
   \item Макроскопические параметры \emph{осредняют} микроскопические
     по элементарным объёмам
   \item Микроскопические параметры связаны с молекулами,
@@ -137,10 +213,12 @@
 \end{frame}
 
 \begin{frame}
-  \frametitle{Функция распределения}
+  \frametitle{Описание эволюции ансамбля}
   \begin{itemize}
-  \item Частиц в среде очень много — вычислительные сложности
-  \item Будем рассматривать сразу \emph{ансамбли} частиц, описываемые
+  \item Частиц в среде очень много
+  \item Можно интегрировать уравнения движения для всех частиц (метод
+    \emph{молекулярной динамики}) — это вычислительные сложности
+  \item Больцман рассмотрел сразу \emph{ансамбли} частиц, описываемые
     \emph{статистической} функцией распределения
     \begin{equation*}
       f(\vec{x}, \vec{c}, t)
@@ -164,7 +242,7 @@
     \begin{equation*}
       n(\vec{x}, t) = \int f(\vec{x}, \vec{c}, t)\,d\vec{c}
     \end{equation*}
-    Интегририрование проводится по всем скоростям.
+    Интегрирование проводится по всем скоростям.
   \item По определению, средняя величина $\vec{\Phi}$ вычисляется с
     как момент функции распределения $f$
     \begin{equation*}
@@ -213,6 +291,7 @@
       f_{\vec{c}}(c_x, c_y, c_z) = \left(\frac{m}{2\pi k T}\right)^{3/2}
       \exp\left[ \frac{-m(c_x^2 + c_y^2 + c_z^2)}{2kT} \right]
     \end{equation*}
+  \item Параметры — $m, T$
   \end{itemize}
 \end{frame}
 
@@ -277,7 +356,8 @@
   \item Пройден путь от молекулярной динамики к уравнению Больцмана и
     к континуальной модели
   \item Как же делать расчёт в разреженных газах?
-  \item Околоземная орбита, микроструктуры
+  \item Околоземная орбита, микроструктуры — там $Kn > 0.1$
+    (разреженная среда, либо маленькие линейные размеры тела)
   \end{itemize}
 \end{frame}
 
@@ -309,20 +389,38 @@
   \item Первоначально в области нет молекул
   \item Итерация на каждом временном шаге $\Delta t$ состоит из
     нескольких этапов
-    \begin{itemize}
-    \item Розыгрыш новых частиц на границе расчётной области по
-      вектору набегающего потока $\vec{V}_\infty$
-    \item Движение частиц в пространстве
-    \item Сортировка частиц по ячейкам
-    \item Розыгрыш 
+    \begin{enumerate}
+    \item Розыгрыш новых частиц на границах расчётной области по
+      параметрам набегающего потока
+    \item Движение частиц в пространстве и учёт условий непротекания
     \item Удаление частиц, вышедших за пределы расчётной области
-    \end{itemize}
-  \item Моделирование заканчивается при установлении режима течения
+    \item Сортировка частиц по ячейкам
+    \item Розыгрыш столкновений внутри каждой ячейки
+    \end{enumerate}
   \item По полученному распределению частиц в расчётной области
     вычисляются макропараметры потока в окрестности тела
+  \item Моделирование заканчивается при установлении режима течения
+    (макропараметры или $N$)
   \end{itemize}
 \end{frame}
 
+\begin{frame}
+  \frametitle{Свободные границы}
+  \begin{enumerate}
+  \item На 6 гранях $\Omega$ строим объёмные источники, в которых
+    разыгрываем частицы по Больцману-Максвеллу по $m, T, \vec{V}, n$
+  \item Новые частицы добавляются к массиву имеющихся
+  \item Многие не доживут до следующей итерации
+  \end{enumerate}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Объёмные источники}
+  \begin{figure}
+    \centering
+    \includegraphics[scale=0.2]{iface.png}
+  \end{figure}  
+\end{frame}
 
 \begin{frame}
   \frametitle{Движение молекул в пространстве}
@@ -339,8 +437,11 @@
   \begin{itemize}
   \item Если оказалось, что частица столкнулась с телом, возвращаем её
     в точку столкновения и разыгрываем столкновение с телом
-  \item Для розыгрыша нужно знать вектор нормали $\vec{n}$ к телу в
-    точке столкновения
+  \item Для розыгрыша нужно знать:
+    \begin{itemize}
+      \item координаты точки столкновения
+      \item вектор нормали $\vec{n}$ к телу в точке столкновения
+    \end{itemize}
   \item Тела сложные — что делать?
   \end{itemize}
 \end{frame}
@@ -420,16 +521,42 @@
   \end{itemize}
 \end{frame}
 
+\begin{frame}[fragile]
+  \frametitle{Удаление частиц}
+  \begin{itemize}
+  \item После инъекции и движения многие частицы могли вылететь за
+    пределы $\Omega$ — удаляем их из массива имеющихся частиц
+  \item Предикат для проверки вылетевших частиц
+\begin{lstlisting}
+xmax >= x && x >= xmin &&
+ymax >= y && y >= ymin &&
+zmax >= z && z >= zmin
+\end{lstlisting}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{После лагранжева этапа}
+  \begin{figure}
+    \centering
+    \includegraphics[scale=0.2]{coll.png}
+  \end{figure}  
+\end{frame}
+
+
 \begin{frame}
   \frametitle{Столкновение молекул между собой}
   \begin{itemize}
-  \item Учитываем только частицы, относящиеся к одной ячейке
+  \item Сортируем частицы по ячейкам: $N$ частиц в зависимости от
+    своих положений распределяются по $N_c$ ячеек. В каждой $k$-й
+    ячейке окажется $N_c^k$ частиц.
+  \item Сталкиваются только частицы, относящиеся к одной ячейке
     \begin{figure}
       \centering
       \includegraphics[scale=0.25]{cells.png}
     \end{figure}
-  \item Для каждой пары частиц $i, j$ в ячейке разыгрываем вероятность
-    столкновения
+  \item Для каждой пары частиц $\forall i, j$ в ячейке разыгрываем вероятность
+    столкновения (схема Бернулли, $O({N_c^k}^2)$)
     \begin{equation*}
       P_{ij} = \frac{\sigma_{ij}\vec{c}_r\Delta t}{V_c}
     \end{equation*}
@@ -459,9 +586,26 @@
 \end{frame}
 
 \begin{frame}
+  \frametitle{Что происходит в ячейке — трактовка}
+  \begin{itemize}
+  \item В пределах каждой ячейки эволюционирует $3 N_c^k$-координатный
+    марковский процесс столкновения частиц с заданной частотой
+  \item На эйлеровом этапе моделируется поведение внутри $N_c$ ячеек,
+    а значит $N_c$ марковских процессов
+  \item Процессы не зависят друг от друга
+  \item Моделирование выполняется параллельно (у каждого процесса свой
+    генератор случайных чисел)
+  \end{itemize}
+\end{frame}
+\begin{frame}
   \frametitle{Модели частиц}
   \begin{itemize}
-  \item Определяет модель взаимодействия при столкновении частиц
+  \item Определяет:
+    \begin{itemize}
+    \item частоту столкновений $\nu(\sigma)$
+    \item модель взаимодействия частиц (что
+      происходит со скоростями после столкновения?)
+    \end{itemize}
   \item Модель твёрдых сфер: 
     \begin{itemize}
     \item $\sigma = \pi d^2$
@@ -501,6 +645,38 @@
     каждой ячейке
   \item Результат — распределение макропараметров
   \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile,fragile]
+  \frametitle{Входные данные программы}
+\begin{lstlisting}
+[Flow]
+t = 300
+
+n = 1e20
+fn = 1e14
+
+m = 29
+
+velocity = (1000, 0, 0)
+
+[Grid]
+hx = 0.1
+hy = 0.1
+hz = 0.1
+
+...
+\end{lstlisting}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Входные данные программы (2)}
+  
+\end{frame}
+
+\begin{frame}
+  \frametitle{Выходные данные программы}
+  
 \end{frame}
 
 \begin{frame}
