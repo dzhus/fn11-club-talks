@@ -44,7 +44,7 @@
 
 \newcommand\good{{\color{green!50!black} \textbf{+}}}
 \newcommand\bad{{\color{red!50!black} \textbf{--}}}
-  
+
 \usefonttheme{professionalfonts}
 \usetheme[secheader]{Boadilla}
 \usecolortheme{whale}
@@ -112,55 +112,6 @@
   \item (в проекции на 2D)
   \item Помимо $\vec{x}$ и $\vec{c}$ у частицы могут быть другие
     степени свободы (зависит от модели)
-  \end{itemize}
-\end{frame}
-
-\begin{frame}
-  \frametitle{Полезная симметрия уравнения Больцмана}
-  \begin{figure}
-    \centering
-      \begin{tikzpicture}[scale=0.7]
-      \coordinate (O) at (0, 0);
-      \coordinate (A) at ($ (O) + (1, 1) $);
-      \coordinate (B) at ($ (O) + (-2, -0.1) $);
-      \coordinate (C) at ($ (O) + (1.7, -0.5) $);
-      \coordinate (D) at ($ (O) + (0.1, -1.5) $);
-      \coordinate (E) at ($ (O) + (0.3, -0.5) $);
-      \coordinate (F) at ($ (O) + (0.1, -1.5) $);
-      \coordinate (G) at ($ (O) + (-1, 1.5) $);
-      \coordinate (H) at ($ (O) + (-0.8, 1.0) $);
-
-      \draw[ultra thick] ($ (O) + (-3, -2) $) -- ++(6, 0) -- ++(0, 4) -- ++(-6, 0) --
-      ++(0, -4);
-
-      \node[draw, shape=circle] at (A) {};
-      \node[draw, shape=circle] at (B) {};
-      \node[draw, shape=circle] at (C) {};
-      \node[draw, shape=circle] at (D) {};
-      \node[draw, shape=circle] at (E) {};
-      \node[draw, shape=circle] at (F) {};
-      \node[draw, shape=circle] at (G) {};
-      \node[draw, shape=circle] at (H) {};
-
-      \coordinate (O') at (7, 0);
-      \coordinate (A') at ($ (O') + (1, 1) $);
-      \coordinate (B') at ($ (O') + (-2, -0.1) $);
-      \coordinate (D') at ($ (O') + (0.1, -1.5) $);
-      \draw[ultra thick] ($ (O') + (-3, -2) $) -- ++(6, 0) -- ++(0, 4) -- ++(-6, 0) --
-      ++(0, -4);
-
-      \node[draw, shape=circle, scale=1.5] at (A') {};
-      \node[draw, shape=circle, scale=1.5] at (B') {};
-      \node[draw, shape=circle, scale=1.5] at (D') {};
-    \end{tikzpicture}
-  \end{figure}
-  \begin{itemize}
-  \item Если в двух ансамблях $n_1 \sigma_1 = n_2 \sigma_2$, то
-    частота столкновений одинакова
-  \item Поэтому большое количество частиц со статистическим весом $1$
-    можно \emph{моделировать} меньшим количеством «депутатов» с весом $W$
-  \item Например, $n = 10^{21}$, $W = 10^{15}$ — нужно $10^6$
-    депутатов
   \end{itemize}
 \end{frame}
 
@@ -258,7 +209,7 @@
     \begin{equation*}
       \underbrace{\pardiff{f}{t} +
         \vec{c} \pardiff{f}{\vec{x}}}_{\text{изменение в фазовом
-          пространстве}} + 
+          пространстве}} +
       \underbrace{K(f)}_{\text{интеграл столкновений}} = 0
     \end{equation*}
   \item Интеграл столкновений содержит модель взаимодействия частиц
@@ -276,10 +227,62 @@
     \begin{itemize}
     \item $f, f_1$ — функции распределения до столкновения
     \item $f', f'_1$ — после
-    \item $c_r$ — модуль относительно скорости
-    \item $\sigma$ — сечение столкновения ($\sigma = \pi d^2$)
+    \item $c_r$ — модуль относительной скорости
+    \item $\sigma$ — сечение столкновения (например, $\sigma = \pi d^2$)
     \end{itemize}
   \item Описывает столкновение двух классов молекул
+  \end{itemize}
+\end{frame}
+
+
+\begin{frame}
+  \frametitle{Полезная симметрия уравнения Больцмана}
+  \begin{figure}
+    \centering
+      \begin{tikzpicture}[scale=0.7]
+      \coordinate (O) at (0, 0);
+      \coordinate (A) at ($ (O) + (1, 1) $);
+      \coordinate (B) at ($ (O) + (-2, -0.1) $);
+      \coordinate (C) at ($ (O) + (1.7, -0.5) $);
+      \coordinate (D) at ($ (O) + (0.1, -1.5) $);
+      \coordinate (E) at ($ (O) + (0.3, -0.5) $);
+      \coordinate (F) at ($ (O) + (0.1, -1.5) $);
+      \coordinate (G) at ($ (O) + (-1, 1.5) $);
+      \coordinate (H) at ($ (O) + (-0.8, 1.0) $);
+
+      \draw[ultra thick] ($ (O) + (-3, -2) $) -- ++(6, 0) -- ++(0, 4) -- ++(-6, 0) --
+      ++(0, -4);
+
+      \node[draw, shape=circle] at (A) {};
+      \node[draw, shape=circle] at (B) {};
+      \node[draw, shape=circle] at (C) {};
+      \node[draw, shape=circle] at (D) {};
+      \node[draw, shape=circle] at (E) {};
+      \node[draw, shape=circle] at (F) {};
+      \node[draw, shape=circle] at (G) {};
+      \node[draw, shape=circle] at (H) {};
+
+      \coordinate (O') at (7, 0);
+      \coordinate (A') at ($ (O') + (1, 1) $);
+      \coordinate (B') at ($ (O') + (-2, -0.1) $);
+      \coordinate (D') at ($ (O') + (0.1, -1.5) $);
+      \draw[ultra thick] ($ (O') + (-3, -2) $) -- ++(6, 0) -- ++(0, 4) -- ++(-6, 0) --
+      ++(0, -4);
+
+      \node[draw, shape=circle, scale=1.5] at (A') {};
+      \node[draw, shape=circle, scale=1.5] at (B') {};
+      \node[draw, shape=circle, scale=1.5] at (D') {};
+    \end{tikzpicture}
+  \end{figure}
+  \begin{itemize}
+  \item Важная величина из $K(f)$ — частота столкновений $\nu = n
+    \sigma \avg{c_r}$
+  \item Если в двух ансамблях $n_1 \sigma_1 = n_2 \sigma_2$, то
+    частота столкновений одинакова
+  \item Поэтому большое количество частиц со статистическим весом $1$
+    можно \emph{моделировать} меньшим количеством «депутатов» с весом $W$
+  \item Например, $n = 10^{21}$, $W = 10^{15}$ — нужно $10^6$
+    депутатов
   \end{itemize}
 \end{frame}
 
@@ -291,7 +294,7 @@
       f_{\vec{c}}(c_x, c_y, c_z) = \left(\frac{m}{2\pi k T}\right)^{3/2}
       \exp\left[ \frac{-m(c_x^2 + c_y^2 + c_z^2)}{2kT} \right]
     \end{equation*}
-  \item Параметры — $m, T$
+  \item Параметры — $m, T$, возможно $\vec{V}$.
   \end{itemize}
 \end{frame}
 
@@ -307,7 +310,7 @@
 
 \begin{frame}
   \frametitle{Уравнения сплошной среды}
-  
+
   \begin{itemize}
   \item Уравнения для моментов функции распределения
     $\int\Phi(\vec{c}) f \,d\vec{c}$ приводят к известным уравнениям
@@ -405,6 +408,17 @@
 \end{frame}
 
 \begin{frame}
+  \frametitle{Сетка}
+  \begin{itemize}
+  \item Используем регулярную сетку с заданными шагами по $x, y, z$
+  \end{itemize}
+  \begin{figure}
+    \centering
+    \includegraphics[scale=0.4]{grid.gif}
+  \end{figure}
+\end{frame}
+
+\begin{frame}
   \frametitle{Свободные границы}
   \begin{enumerate}
   \item На 6 гранях $\Omega$ строим объёмные источники, в которых
@@ -419,7 +433,7 @@
   \begin{figure}
     \centering
     \includegraphics[scale=0.2]{iface.png}
-  \end{figure}  
+  \end{figure}
 \end{frame}
 
 \begin{frame}
@@ -476,7 +490,7 @@
     \begin{tikzpicture}[scale=0.75]
       \begin{scope}
         \coordinate (O) at (0, 0);
-        \coordinate (p) at ($ (O) + (120:2) $); 
+        \coordinate (p) at ($ (O) + (120:2) $);
         \draw[name path=body, draw] (O) to[out=90, in=180] ++(45:5)
         to[out=0, in=25] ++(-75:7)
         node[label=below:$B$] {}
@@ -540,9 +554,8 @@ zmax >= z && z >= zmin
   \begin{figure}
     \centering
     \includegraphics[scale=0.2]{coll.png}
-  \end{figure}  
+  \end{figure}
 \end{frame}
-
 
 \begin{frame}
   \frametitle{Столкновение молекул между собой}
@@ -556,11 +569,12 @@ zmax >= z && z >= zmin
       \includegraphics[scale=0.25]{cells.png}
     \end{figure}
   \item Для каждой пары частиц $\forall i, j$ в ячейке разыгрываем вероятность
-    столкновения (схема Бернулли, $O({N_c^k}^2)$)
+    столкновения (схема Бернулли, $O({N_c^k}^2)$) с известной частотой $\nu$
     \begin{equation*}
-      P_{ij} = \frac{\sigma_{ij}\vec{c}_r\Delta t}{V_c}
+      P_{ij} = \frac{\nu \Delta t}{N_c^k} = \frac{W\sigma_{ij}\vec{c}_r\Delta t}{V_c}
     \end{equation*}
     \begin{itemize}
+    \item $W$ — вес «депутата»
     \item $V_c$ — объём ячейки
     \item $\vec{c}_r$ — относительная скорость двух частиц
     \item $\sigma_{ij}$ — сечение столкновения, зависящее от
@@ -576,6 +590,7 @@ zmax >= z && z >= zmin
     \includegraphics[scale=0.25]{sigma.png}
   \end{figure}
   \begin{itemize}
+  \item Частота $\nu$ зависит от используемой модели
   \item Ищем отношение объёма цилиндра высотой $\Delta t$ и площадью
     основания $\sigma_{ij}$ к объёму всей ячейки
   \item Испытания по схеме Бернулли — частицы сталкиваются, если
@@ -597,6 +612,7 @@ zmax >= z && z >= zmin
     генератор случайных чисел)
   \end{itemize}
 \end{frame}
+
 \begin{frame}
   \frametitle{Модели частиц}
   \begin{itemize}
@@ -606,7 +622,7 @@ zmax >= z && z >= zmin
     \item модель взаимодействия частиц (что
       происходит со скоростями после столкновения?)
     \end{itemize}
-  \item Модель твёрдых сфер: 
+  \item Модель твёрдых сфер:
     \begin{itemize}
     \item $\sigma = \pi d^2$
     \item Вектор $\vec{c}_r$ после столкновения распределён по
@@ -647,7 +663,9 @@ zmax >= z && z >= zmin
   \end{itemize}
 \end{frame}
 
-\begin{frame}[fragile,fragile]
+\section{Реализация и результаты}
+
+\begin{frame}[fragile]
   \frametitle{Входные данные программы}
 \begin{lstlisting}
 [Flow]
@@ -669,24 +687,110 @@ hz = 0.1
 \end{lstlisting}
 \end{frame}
 
-\begin{frame}
-  \frametitle{Входные данные программы (2)}
-  
+\begin{frame}[fragile]
+  \frametitle{Входные данные программы (тело)}
+\begin{lstlisting}
+  body = Intersection (Intersection (Intersection
+         (Intersection (Intersection
+       (Cone (1, 0, 0) (0, 0, 0) 0.3)
+       (Plane (0, 1, 0) 3))
+       (Cylinder (0.2, 0.8, 0) (0.3, 0.2, 0) 2.5))
+       (Cylinder (0.5, 0.5, 0) ((-0.3), 0.2, 0) 3))
+       (Cylinder (0.8, 0.2, 0) ((-0.3), 0.2, 0) 2.5))
+       (Cylinder (0.5, 0, 1) ((-0.3), 0.2, 0) 4)
+\end{lstlisting}
+
 \end{frame}
 
-\begin{frame}
+\begin{frame}[fragile]
   \frametitle{Выходные данные программы}
-  
+  \begin{itemize}
+  \item Текстовый формат (дальше используем какую-нибудь программу
+    визуализации)
+  \end{itemize}
+\begin{lstlisting}
+-0.95 -0.85 0.55 1019.4918599440547 0.35016376769650687 -13.604465334
+-0.85 -0.85 0.55 1366.673053637682 -38.774232190222044 -185.471092957
+-0.95 -0.75 0.55 1100.254884973527 -13.382653583679717 -63.7551895773
+-0.85 -0.75 0.55 1363.7316003289795 7.254925630713765 -37.85531177083
+...
+\end{lstlisting}
 \end{frame}
 
-\begin{frame}
+\begin{frame}[fragile,fragile]
   \frametitle{Параллелизм}
   \begin{itemize}
-  \item \good{} Движение молекул
-  \item \good{} Столкновения в разных ячейках
-  \item Нужны некорреллированные генераторы случайных чисел на каждую ячейку
-  \item \good{} Расчёт $\tau$ для разных молекул (можно использовать
-    GPU, так как используются лишь простые векторные операции)
+  \item Основная идея: если есть набор данных и чистая функция, то
+    функция может применятся параллельно (\emph{Repa} +
+    \emph{parallel})
+\begin{lstlisting}
+parMap :: (a -> b) -> [a] -> [b]
+\end{lstlisting}
+Рантайм сам распределяет задачи по имеющимся потокам (ядрам).
+  \item Наши наборы данных — вектор частиц, либо вектор ячеек
+\begin{lstlisting}
+type Particle = (Point, Vec3)
+type Ensemble = R.Array R.U R.DIM1 Particle
+advance :: Monad m => Time -> Body -> Ensemble -> m Ensemble
+\end{lstlisting}
+\begin{lstlisting}
+parMap rpar (\(d, s) -> pureSpawnParticles d flow s) $
+                        zip [d1, d2, d3, d4, d5, d6]
+                            [s1, s2, s3, s4, s5, s6]
+\end{lstlisting}
   \end{itemize}
 \end{frame}
+
+\begin{frame}
+  \frametitle{Анализ данных}
+  \begin{itemize}
+  \item \good{} Добавление молекул (до шести потоков для каждого
+    объёмного источника)
+  \item \bad{} Естественный барьер (объединение векторов)
+  \item \good{} Движение молекул и столкновения с телом
+  \item \good{} Удаление молекул
+  \item \bad{} Естественный барьер (сортировка молекул по ячейкам)
+  \item \good{} Столкновения в разных ячейках
+  \item Нужны некорреллированные генераторы случайных чисел на каждую ячейку
+  \item \good{} Расчёт макроскопических параметров в каждой ячейке
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Результаты}
+  \begin{itemize}
+  \item Геометрия на рисунке построена в Paraview
+  \item Сложные тела, аргон, $T = 300K, \vec{V} = (1200, 0, 0), m =
+    21, n = 10^{21}, W = 10^{15}, \Delta t = 10^{-6}$
+  \end{itemize}
+  \begin{figure}
+    \centering
+    \includegraphics[scale=0.2]{b1.png}
+  \end{figure}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Результаты (2)}
+  \begin{figure}
+    \centering
+    \includegraphics[scale=0.2]{b2.png}
+  \end{figure}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Результаты (3)}
+  \begin{figure}
+    \centering
+    \includegraphics[scale=0.2]{b3.png}
+  \end{figure}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Результаты (4)}
+  \begin{figure}
+    \centering
+    \includegraphics[scale=0.2]{b4.png}
+  \end{figure}
+\end{frame}
+
 \end{document}
