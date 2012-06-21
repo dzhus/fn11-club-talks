@@ -20,8 +20,10 @@
 \contourlength{1pt}
 \contournumber{8}
 
+\usepackage{pgfplots}
 \usepackage{listings}
 \lstset{language=haskell, basicstyle=\scriptsize\ttfamily, escapechar=|, frame=single}
+
 
 \newcommand{\abs}[1]{\left \lvert{#1}\right \rvert}
 \newcommand\tw\textwidth
@@ -30,7 +32,7 @@
 
 \newcommand\avg[1]{\left\langle{#1}\right\rangle}
 
-\\renewcommand\geq\geqslant
+\renewcommand\geq\geqslant
 \renewcommand\leq\leqslant
 \newcommand{\pardiff}[2]{\frac{\partial{#1}}{\partial{#2}}}
 
@@ -54,10 +56,39 @@
 
 \setmainlanguage{russian}
 
-\title{Прямое статистическое моделирование}
+\newcommand{\tr}\tau
+% time step
+\newcommand{\ts}{\Delta t}
+% cell step
+\newcommand{\sps}{\Delta L}
+% weight
+\newcommand{\statw}{W_N}
+% domain
+\newcommand\dom{\Omega}
+
+
+% Kinetic parameters
+\newcommand{\fp}{\lambda_m}
+\newcommand{\ft}{\tau_m}
+\newcommand{\cf}{\nu_m}
+\newcommand{\ttr}{T_{\rtr}}
+\newcommand{\dcs}{\sigma}
+\newcommand{\ccs}{\sigma_T}
+\newcommand{\mff}{\avg{\ccs c_r}_{\max}}
+\newcommand\then{\Rightarrow}
+
+% Macro parameters
+\newcommand\flowvel{\vec{V}_{\infty}}
+\newcommand\flowtemp{T_{\infty}}
+\newcommand\flowcon{n_{\infty}}
+
+\newcommand{\floor}[1]{\left \lfloor{#1}\right \rfloor}
+
+% Velocities
+\newcommand\cprob{c'_p}
+
+\title{Моделирование разреженных газовых потоков методом Монте-Карло}
 \author{Дмитрий Джус}
-\institute{АК-121}
-\date{25 апреля 2011}
 
 \begin{document}
 
@@ -66,698 +97,389 @@
 \end{frame}
 
 \begin{frame}
-  \frametitle{План}
-  \tableofcontents
-\end{frame}
-
-\section{Кинетическая теория газа}
-
-\begin{frame}
-  \frametitle{Простая модель одноатомного газа}
-  \begin{itemize}
-  \item Трёхмерное пространство с молекулами
-  \item У каждой молекулы есть положение $\vec{x}(t)$ и тепловая
-    скорость $\vec{c}(t)$
-  \item Положения и скорости меняются от взаимодействия частиц между
-    собой и действия внешних сил
-  \item \textbf{Задача}: найти $\vec{x}(t)$, $\vec{c}(t)$ для частиц в
-    расчётной области
-  \end{itemize}
-\end{frame}
-
-\begin{frame}
-  \frametitle{ВИА Частицы}
+  \frametitle{Концептуальная постановка}
+  Рассматривается обтекание тела сложной формы $B$ разреженным потоком
+  одноатомного газа с заданными параметрами $\flowvel, \flowtemp,
+  \flowcon$ в области $\dom$ в режиме $0.1 < \Kn < 10.0$, $\Kn = \fp /
+  L$.
   \begin{figure}
     \centering
-    \begin{tikzpicture}
-      \coordinate (O) at (0, 0);
-      \coordinate (A) at ($ (O) + (1, 1) $);
-      \coordinate (B) at ($ (O) + (-2, -0.1) $);
-      \coordinate (C) at ($ (O) + (1.7, -0.5) $);
-      \coordinate (D) at ($ (O) + (0.1, -1.5) $);
-      \draw[ultra thick] ($ (O) + (-3, -2) $) -- ++(6, 0) -- ++(0, 4) -- ++(-6, 0) --
-      ++(0, -4);
-
-      \node[draw, shape=circle] at (A) {};
-      \draw[->] (A) -- ++(0.3, 0.3);
-      \node[draw, shape=circle] at (B) {};
-      \draw[->] (B) -- ++(-0.4, 0.5);
-      \node[draw, shape=circle] at (C) {};
-      \draw[->] (C) -- ++(0.3, -0.5);
-      \node[draw, shape=circle] at (D) {};
-      \draw[->] (D) -- ++(0.1, 0.6);
-    \end{tikzpicture}
+    \includegraphics[scale=0.2]{concept1.png}
   \end{figure}
-  \begin{itemize}
-  \item (в проекции на 2D)
-  \item Помимо $\vec{x}$ и $\vec{c}$ у частицы могут быть другие
-    степени свободы (зависит от модели)
-  \end{itemize}
+  Газовый поток моделируется как ансамбль частиц, у каждой из которых
+  есть положение $\vec{x}$ и скорость $\vec{c}$. Требуется найти
+  распределение макроскопических параметров в окрестности тела.
 \end{frame}
 
 \begin{frame}
-  \frametitle{Макроскопические параметры}
-  \begin{itemize}
-  \item Микроскопические параметры отдельных молекул нам совсем не интересны
-  \item Макроскопические параметры \emph{осредняют} микроскопические
-    по элементарным объёмам
-  \item Микроскопические параметры связаны с молекулами,
-    макроскопические — с точкой в пространстве
-  \end{itemize}
+  \frametitle{Математическая постановка}
+  В отсутствие условия $\Kn \ll 1$ рассматриваем модель идеального
+  газа. Учитываются парные столкновения.
+  
+  Состояние газа описывается уравнением Больцмана для функции
+  распределения $f(\vec{x}, \vec{c}, t)$:
+\begin{equation*}
+  \label{eq:boltzmann}
+  \pardiff{f}{t}
+  +\underbrace{\vec{c}\pardiff{f}{\vec{x}}}_{\text{конвекция}}
+  +\underbrace{\vec{F}\pardiff{f}{\vec{c}}}_{\text{действие внешних сил}}
+  = \underbrace{K(f)}_{\text{столкновения}}
+\end{equation*}
+Для решения требуются краевые условия.
+\begin{equation}
+  \label{eq:coll-operator}
+  K(f) = \int_{-\infty}^{+\infty}\int_{0}^{4\pi}{n^2(f'f'_1 - f
+  f_1)\dcs c_r\,d\Omega\,d\vec{c}_1},
+\end{equation}
+
+где $f, f_1$ — функции распределения молекул со скоростями $\vec{c},
+\vec{c}_1$ до столкновения, $f', f'_1$ — функции распределения молекул
+со скоростями $\vec{c}', \vec{c}'_1$, $\dcs$ — дифференциальное
+сечение столкновения, $\Omega$ — телесный угол, $c_r$ — относительная
+скорость.
 \end{frame}
 
 \begin{frame}
-  \frametitle{Макроскопические параметры (2)}
-  \begin{itemize}
-  \item Концентрация $n$ — количество молекул в единице объёма
-    \begin{equation*}
-      n = \frac{N}{V}
-    \end{equation*}
-  \item Плотность $\rho$ — масса на единицу объёма
-    \begin{equation*}
-      \rho = m n
-    \end{equation*}
-  \item Скорость среды $\vec{V}=\avg{\vec{c}}$ — осреднение по скоростям молекул в
-    элементарном объёме
-    \begin{equation*}
-      \avg{\vec{c}} = \frac{1}{N}\sum_{i \in V}{\vec{c}}
-    \end{equation*}
-  \item Температура $T$
-    \begin{equation*}
-      \frac{3kT}{m} = \avg{c^2}
-    \end{equation*}
-  \end{itemize}
-\end{frame}
-
-\begin{frame}
-  \frametitle{Макроскопические параметры (3)}
-  \begin{itemize}
-  \item Компоненты тензора давления
-    \begin{equation*}
-      p_{ij} = \rho \avg{c_i} \avg{c_j}
-    \end{equation*}
-  \item Скалярный параметр давления в среде
-    \begin{equation*}
-      p = \frac{1}{3}\rho\avg{c^2}
-    \end{equation*}
-  \end{itemize}
-\end{frame}
-
-\begin{frame}
-  \frametitle{Описание эволюции ансамбля}
-  \begin{itemize}
-  \item Частиц в среде очень много
-  \item Можно интегрировать уравнения движения для всех частиц (метод
-    \emph{молекулярной динамики}) — это вычислительные сложности
-  \item Больцман рассмотрел сразу \emph{ансамбли} частиц, описываемые
-    \emph{статистической} функцией распределения
-    \begin{equation*}
-      f(\vec{x}, \vec{c}, t)
-    \end{equation*}
-  \item Задана в шестимерном фазовом пространстве
-  \item По определению, количество частиц в элементе $d\vec{x}\,
-    d\vec{c}$ равно
-    \begin{equation*}
-      f(\vec{x}, \vec{c}, t) \,d\vec{x}\, d\vec{c}
-    \end{equation*}
-    Столько частиц имеют положение в интервале от $\vec{x}$ до
-    $\vec{x}+d\vec{x}$ и скорость в интервале от $\vec{c}$ до
-    $\vec{c}+d\vec{c}$.
-  \end{itemize}
-\end{frame}
-
-\begin{frame}
-  \frametitle{Вычисление макроскопических параметров}
-  \begin{itemize}
-  \item Число частиц в единице физического объёма
-    \begin{equation*}
-      n(\vec{x}, t) = \int f(\vec{x}, \vec{c}, t)\,d\vec{c}
-    \end{equation*}
-    Интегрирование проводится по всем скоростям.
-  \item По определению, средняя величина $\vec{\Phi}$ вычисляется с
-    как момент функции распределения $f$
-    \begin{equation*}
-      \avg{\Phi} = \frac{\int{\Phi f \,d\vec{c}}}{n}
-    \end{equation*}
-  \end{itemize}
-\end{frame}
-
-\begin{frame}
-  \frametitle{Уравнение Больцмана}
-  \begin{itemize}
-  \item Описывает эволюцию ансамблей частиц
-    \begin{equation*}
-      \underbrace{\pardiff{f}{t} +
-        \vec{c} \pardiff{f}{\vec{x}}}_{\text{изменение в фазовом
-          пространстве}} +
-      \underbrace{K(f)}_{\text{интеграл столкновений}} = 0
-    \end{equation*}
-  \item Интеграл столкновений содержит модель взаимодействия частиц
-  \item Не учитываем внешние силы
-  \end{itemize}
-\end{frame}
-
-\begin{frame}
-  \frametitle{Интеграл столкновений}
-  \begin{itemize}
-  \item Часто используемый вид $K(f)$ для одноатомного газа
-    \begin{equation*}
-      \int\int\int(f'f'_1-f f_1) {c_r \sigma \,d\Omega\,d\vec{c_1}}
-    \end{equation*}
-    \begin{itemize}
-    \item $f, f_1$ — функции распределения до столкновения
-    \item $f', f'_1$ — после
-    \item $c_r$ — модуль относительной скорости
-    \item $\sigma$ — сечение столкновения (например, $\sigma = \pi d^2$)
-    \end{itemize}
-  \item Описывает столкновение двух классов молекул
-  \end{itemize}
-\end{frame}
-
-
-\begin{frame}
-  \frametitle{Полезная симметрия уравнения Больцмана}
-  \begin{figure}
-    \centering
-      \begin{tikzpicture}[scale=0.7]
-      \coordinate (O) at (0, 0);
-      \coordinate (A) at ($ (O) + (1, 1) $);
-      \coordinate (B) at ($ (O) + (-2, -0.1) $);
-      \coordinate (C) at ($ (O) + (1.7, -0.5) $);
-      \coordinate (D) at ($ (O) + (0.1, -1.5) $);
-      \coordinate (E) at ($ (O) + (0.3, -0.5) $);
-      \coordinate (F) at ($ (O) + (0.1, -1.5) $);
-      \coordinate (G) at ($ (O) + (-1, 1.5) $);
-      \coordinate (H) at ($ (O) + (-0.8, 1.0) $);
-
-      \draw[ultra thick] ($ (O) + (-3, -2) $) -- ++(6, 0) -- ++(0, 4) -- ++(-6, 0) --
-      ++(0, -4);
-
-      \node[draw, shape=circle] at (A) {};
-      \node[draw, shape=circle] at (B) {};
-      \node[draw, shape=circle] at (C) {};
-      \node[draw, shape=circle] at (D) {};
-      \node[draw, shape=circle] at (E) {};
-      \node[draw, shape=circle] at (F) {};
-      \node[draw, shape=circle] at (G) {};
-      \node[draw, shape=circle] at (H) {};
-
-      \coordinate (O') at (7, 0);
-      \coordinate (A') at ($ (O') + (1, 1) $);
-      \coordinate (B') at ($ (O') + (-2, -0.1) $);
-      \coordinate (D') at ($ (O') + (0.1, -1.5) $);
-      \draw[ultra thick] ($ (O') + (-3, -2) $) -- ++(6, 0) -- ++(0, 4) -- ++(-6, 0) --
-      ++(0, -4);
-
-      \node[draw, shape=circle, scale=1.5] at (A') {};
-      \node[draw, shape=circle, scale=1.5] at (B') {};
-      \node[draw, shape=circle, scale=1.5] at (D') {};
-    \end{tikzpicture}
-  \end{figure}
-  \begin{itemize}
-  \item Важная величина из $K(f)$ — частота столкновений $\nu = n
-    \sigma \avg{c_r}$
-  \item Если в двух ансамблях $n_1 \sigma_1 = n_2 \sigma_2$, то
-    частота столкновений одинакова
-  \item Поэтому большое количество частиц со статистическим весом $1$
-    можно \emph{моделировать} меньшим количеством «депутатов» с весом $W$
-  \item Например, $n = 10^{21}$, $W = 10^{15}$ — нужно $10^6$
-    депутатов
-  \end{itemize}
-\end{frame}
-
-\begin{frame}
-  \frametitle{Распределение Максвелла—Больцмана}
-  \begin{itemize}
-  \item Решение уравнения Больцмана для равновесного газа
-    \begin{equation*}
-      f_{\vec{c}}(c_x, c_y, c_z) = \left(\frac{m}{2\pi k T}\right)^{3/2}
-      \exp\left[ \frac{-m(c_x^2 + c_y^2 + c_z^2)}{2kT} \right]
-    \end{equation*}
-  \item Параметры — $m, T$, возможно $\vec{V}$.
-  \end{itemize}
-\end{frame}
-
-\begin{frame}
-  \frametitle{Решение уравнения Больцмана}
-  \begin{itemize}
-  \item 6-мерное уравнение в частных производных
-  \item Сложность в задании граничных условий
-  \item Даже на модельных задач получаются интегро-дифференциальные
-    уравнения, которые в итоге всё равно нужно решать численно
-  \end{itemize}
-\end{frame}
-
-\begin{frame}
-  \frametitle{Уравнения сплошной среды}
-
-  \begin{itemize}
-  \item Уравнения для моментов функции распределения
-    $\int\Phi(\vec{c}) f \,d\vec{c}$ приводят к известным уравнениям
-    сплошной среды
-    \begin{equation*}
-      \begin{cases}
-        \frac{d\rho}{dt} = -\rho \diverg {\vec{V}},\\
-        \frac{d\vec{V}}{dt} = -\frac{1}{\rho}\gradient{p} + \frac{\lambda
-          + \mu}{\rho}\gradient\diverg\vec{V} + \nu\Delta\vec{V},\\
-        \rho\frac{de}{dt} = -p\diverg\vec{V}+\sum_{i,j}{\Pi_{ij}\pardiff{V_i}{x_j}}-\diverg\vec{W}
-      \end{cases}
-    \end{equation*}
-  \item Вектор потока тепла $\vec{W}$ и тензор напряжений связаны с
-    $\vec{V}$ и $T$
-  \end{itemize}
-\end{frame}
-
-\begin{frame}
-  \frametitle{Число Кнудсена}
-
-  \begin{itemize}
-  \item Характеризует степень разреженности газового потока:
-    \begin{equation*}
-      \Kn = \frac{\lambda}{L}
-    \end{equation*}
-    \begin{itemize}
-    \item $\lambda$ — длина свободного пробега частиц
-    \item $L$ — характерный размер \emph{локальной} области
-      неоднородности (градиента макропараметров):
-      \begin{equation*}
-        L = \frac{\rho}{d\rho / dx}
-      \end{equation*}
-    \end{itemize}
-
-  \item При $\Kn \to 0$ (в практике $\Kn < 0.1$) действует основное
-    предположение МСС о континуальности среды
-  \item При $0.1 < \Kn < 1$ требуется уже кинетическое моделирование
-  \item При $\Kn \gg 1$ (в практике $\Kn \geq 1$) столкновения молекул
-    между собой не учитываются (свободномолекулярное течение)
-  \end{itemize}
-\end{frame}
-
-\begin{frame}
-  \frametitle{На распутье}
-  \begin{itemize}
-  \item Пройден путь от молекулярной динамики к уравнению Больцмана и
-    к континуальной модели
-  \item Как же делать расчёт в разреженных газах?
-  \item Околоземная орбита, микроструктуры — там $Kn > 0.1$
-    (разреженная среда, либо маленькие линейные размеры тела)
-  \end{itemize}
-\end{frame}
-
-\section{Прямое статистическое моделирование}
-\begin{frame}
-  \frametitle{Общие положения}
-  \begin{itemize}
-  \item Хотим смоделировать обтекание тела газовым потоком с $0.1 <
-    \Kn < 1$
-  \item Имитируем поведение частиц, описанное уравнением Больцмана
-  \item Расщепление:
-    \begin{enumerate}
-      \item бесстолкновительное движение, изменяющее их положение (лагранжев этап)
-      \item столкновение между частицами, изменяющее их скорости (эйлеров этап)
-    \end{enumerate}
-  \item Как молекулярная динамика, только взаимодействия учитываются
-    стохастически
-  \item Одна модельная частица симулирует $W$ реальных для правильной
-    частоты столкновений
-  \item Считаем, что взаимодействовать между собой могут лишь частицы,
-    находящиеся в одной пространственной ячейке (потенциал
-    взаимодействия ограничен)
-  \end{itemize}
-\end{frame}
-
-\begin{frame}
-  \frametitle{Шаги алгоритма}
-  \begin{itemize}
-  \item Разбиение прямоугольной расчётной области на ячейки (регулярная
-    сетка)
-  \item Первоначально в области нет молекул
-  \item Итерация на каждом временном шаге $\Delta t$ состоит из
-    нескольких этапов
-    \begin{enumerate}
-    \item Розыгрыш новых частиц на границах расчётной области по
-      параметрам набегающего потока
-    \item Движение частиц в пространстве и учёт условий непротекания
-    \item Удаление частиц, вышедших за пределы расчётной области
-    \item Сортировка частиц по ячейкам
-    \item Розыгрыш столкновений внутри каждой ячейки
-    \end{enumerate}
-  \item По полученному распределению частиц в расчётной области
-    вычисляются макропараметры потока в окрестности тела
-  \item Моделирование заканчивается при установлении режима течения
-    (макропараметры или $N$)
-  \end{itemize}
-\end{frame}
-
-\begin{frame}
-  \frametitle{Сетка}
-  \begin{itemize}
-  \item Используем регулярную сетку с заданными шагами по $x, y, z$
-  \item Сетка используется для розыгрыша столкновений и для
-    макропараметров
-  \end{itemize}
-  \begin{figure}
-    \centering
-    \includegraphics[scale=0.4]{grid.png}
-  \end{figure}
-\end{frame}
-
-\begin{frame}
-  \frametitle{Свободные границы}
+  \frametitle{Основные предположения метода прямого статистического моделирования}
   \begin{enumerate}
-  \item На 6 гранях $\Omega$ строим объёмные источники, в которых
-    разыгрываем частицы по Больцману-Максвеллу по $m, T, \vec{V}, n$
-  \item Новые частицы добавляются к массиву имеющихся
-  \item Многие не доживут до следующей итерации
-  \end{enumerate}
+\item Описываемое уравнением Больцмана молекулярное движение в
+  пространстве и столкновения частиц между собой расщеплены по
+  времени. В пределах каждой итерации эти два этапа (называемые
+  «лагранжев этап» и «эйлеров этап», соответственно) рассматриваются
+  раздельно.
+\item Каждая модельная частица-симулятор представляет большое
+  количество $\statw$ настоящих частиц.
+\item Расчётная область разбивается на пространственные ячейки, и
+  считается, что на каждой итерации между собой сталкиваются лишь
+  частицы, относящиеся к одной и той же ячейке. Расчёт столкновений
+  между частицами проводится стохастически, без учёта их реального
+  взаимоположения.
+\end{enumerate}
 \end{frame}
 
 \begin{frame}
-  \frametitle{Объёмные источники}
-  \begin{figure}
+  \frametitle{Расщепление уравнения Больцмана по времени}
+  Вводится схема расщепления уравнения Больцмана по времени с шагом
+  $\ts$. Рассматривается два набора функций $f_k'(\vec{x},\vec{c},t)$
+  и $f_k''(\vec{x},\vec{c},t)$, заданных на временных интервалах
+  $[t_k; t_{k+1}]$, где $t_k = k\ts$. Первое уравнение для $f_k'$
+  соответствует бесстолкновительному движению частиц в пространстве
+  (лагранжев этап):
+  \begin{equation*}
+    \label{eq:dsmc-splitting1}
+    \pardiff{f_k'}{t} + \vec{c}\pardiff{f_k'}{\vec{x}} = 0.
+  \end{equation*}
+  Уравнение для $f_k''$ описывает только процесс столкновений частиц
+  между собой без пространственной конвекции (эйлеров этап):
+  \begin{equation*}
+    \label{eq:dsmc-splitting2}
+    \pardiff{f_k''}{t} = K(f).
+  \end{equation*}
+Правило чередования этапов:
+\begin{equation*}
+  \label{eq:dsmc-splitting3}
+  \begin{aligned}
+    f_k''(\vec{x},\vec{c},t_k) &=
+    f_{k-1}''(\vec{x},\vec{c},t_k),\\
+    f_k'(\vec{x},\vec{c},t_k) &=
+    f_{k-1}''(\vec{x},\vec{c},t_k),\:k=1,2,\dotsc;\:
+    f_0'(\vec{x},\vec{c},t_k) &= f_0(\vec{x}, \vec{c}, 0).
+  \end{aligned}
+\end{equation*}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Расщепление столкновений по пространству}
+  Основные трудности при решении уравнения Больцмана связаны с
+  интегральным видом $K(f)$. Область $\dom$ разбивается на $C$ ячеек,
+  в каждой из которых на всякой итерации оказывается некоторое
+  количество частиц $N_C$.
+  \begin{figure}[!h]
     \centering
-    \includegraphics[scale=0.2]{iface.png}
+    \includegraphics[scale=0.2]{grid.png}
+    \includegraphics[scale=0.2]{cells.png}
   \end{figure}
 \end{frame}
 
 \begin{frame}
-  \frametitle{Движение молекул в пространстве}
-  \begin{itemize}
-  \item Положение каждой частицы на $i$-м шаге преобразуется по закону
-    \begin{equation*}
-      \vec{x}_i = \vec{x}_{i-1} + \vec{c}_{i-1} \Delta t
-    \end{equation*}
-  \end{itemize}
-\end{frame}
-
-\begin{frame}[fragile]
-  \frametitle{Учёт граничных условий}
-  \begin{itemize}
-  \item Если оказалось, что частица столкнулась с телом, возвращаем её
-    в точку столкновения и разыгрываем столкновение с телом
-  \item Для розыгрыша нужно знать:
-    \begin{itemize}
-      \item координаты точки столкновения
-      \item вектор нормали $\vec{n}$ к телу в точке столкновения
-    \end{itemize}
-  \item Тела сложные — что делать?
-  \end{itemize}
+  \frametitle{Расщепление столкновений по пространству}
+  В каждой ячейке в течение итерации рассматривается скачкообразный
+  марковский процесс для $3N_C$-мерной системы из $N_C$ векторов
+  скоростей частиц в данной ячейке
+  \begin{equation*}
+    \vec{C} = (\vec{c}_1, \dotsc, \vec{c}_{N_C}).
+  \end{equation*}
+  Во время скачка меняются только две скорости (бинарные
+  столкновения):
+  \begin{equation*}
+    \vec{C} = (\vec{c}_1,\dotsc,\vec{c}_i,\dotsc,\vec{c}_j,\dotsc,\vec{c}_{N_C})
+  \end{equation*}
+  переходит в состояние 
+  \begin{equation*}
+    \vec{C'} = (\vec{c}_1,\dotsc,\vec{c'}_i,\dotsc,\vec{c'}_j,\dotsc,\vec{c}_{N_C}).
+  \end{equation*}
+  Новые значения $\vec{c'}_i$ и $\vec{c'}_j$ являются случайными
+  величинами, удовлетворяющими законам сохранения:
+  \begin{equation*}
+    \begin{aligned}
+      \frac{\vec{c'}_i+\vec{c'}_j}{2} &=
+      \frac{\vec{c}_i+\vec{c}_j}{2},\\
+      c_r = \abs{c_i - c_j} &= \abs{c'_i - c'_j} = c'_r.
+    \end{aligned}
+  \end{equation*}
+ Вектор $\vec{c'}_r = \vec{c'}_i - \vec{c'}_j$ распределён по
+  телесному углу $\Omega$ с заданным законом распределения $\dcs$
+  (см. \eqref{eq:diff-cross-section}).
 \end{frame}
 
 \begin{frame}
-  \frametitle{Описание сложных тел}
-  \begin{figure}
+  \frametitle{Расщепление столкновений по пространству}
+  Вероятность перехода системы $\vec{C} \to \vec{C'}$ и время ожидания
+  между переходами $\tau$ задаются следующим образом:
+  \begin{equation*}
+    \label{eq:coll-prob-generic}
+    P_{ij} = \frac{\statw\ccs^{(i,j)}c_r^{(i, j)} \ts}{V_C},\:    F(\tau) = 1 - \exp(-\cf \tau).
+  \end{equation*}
+  \begin{figure}[!h]
     \centering
-    \includegraphics[scale=0.15]{csg.png}
+    \includegraphics[scale=0.1]{coll.png}
   \end{figure}
-  \begin{itemize}
-  \item Используем подход CSG — конструктивная твердотельная геометрия
-  \item Тело является рекурсивной композицией примитивов или других
-    тел
-    \begin{equation}
-      B_\Sigma = (B_1 \cap B_2) \cup \overline{B_3}
-    \end{equation}
-  \item Примитивы — сфера, цилиндр, полупространство и другие
-  \end{itemize}
+  $\cf = \avg{\ccs c_r} n$ — частота столкновений, $\statw$ —
+  статистический вес частиц.
 \end{frame}
 
 \begin{frame}
-  \frametitle{Учёт столкновений со сложным телом}
+  \frametitle{Статистический вес частиц}
+  $\statw$ — статистический вес одной частицы:
+  \begin{equation*}
+    \ccs n = \ccs' n' \then \cf = \avg{\ccs c_r} \cdot n = \avg{\ccs' c_r} \cdot n'.
+  \end{equation*}
+  При увеличении $\statw$ и пропорциональном уменьшении $n$ частота
+  $\cf$ не меняется, поэтому можно моделировать поток меньшим
+  количеством частиц-«симуляторов».
+  \begin{equation*}
+    n = 10^{20}, W_N = 10^{13} \then n_s = 10^7.
+  \end{equation*}
+\end{frame}
 
-\begin{itemize}
-\item Вводим для частицы и тела функцию $\tau(P, B)$, которая
-  возвращает набор отрезков на оси $t$, соответствующих участку
-  траектории частицы внутри тела («след частицы на теле»)
-  \end{itemize}
-  \begin{figure}
+\begin{frame}
+  \frametitle{Стохастический расчёт столкновений}
+  При столкновениях $\vec{c'}_r$ распределён согласно заданному закону
+  $\sigma$ — дифференциальному сечению столкновения (следствие теории
+  взаимодействия молекул):
+  \begin{equation*}
+    \sigma(\chi,c_r) d\Omega = b\,db\,d\epsilon
+  \end{equation*}
+
+  В модели твёрдых сфер постоянного диаметра $d$
+  \begin{equation*}
+    \sigma = d^2/4,
+  \end{equation*}
+  Так что $\vec{c'}_r$ — изотропный случайный вектор.
+  \begin{figure}[!h]
     \centering
-    \begin{tikzpicture}[scale=0.75]
-      \begin{scope}
-        \coordinate (O) at (0, 0);
-        \coordinate (p) at ($ (O) + (120:2) $);
-        \draw[name path=body, draw] (O) to[out=90, in=180] ++(45:5)
-        to[out=0, in=25] ++(-75:7)
-        node[label=below:$B$] {}
-        to[out=205, in=-10] ++(110:4)
-        to[out=170, in=-90] (O);
-
-        \draw[name path=ray, thick, densely dotted, ->] (p) -- ++(155:1) -- ++(-25:11);
-        \begin{scope}[name intersections={of=body and ray, by={a,b,c,d}}]
-          \draw[ultra thick] (a) -- (d);
-          \draw[ultra thick] (c) -- (b);
-          \node at ($(a) + (240:0.5)$) {\contour{white}{$(t_1, \vec{n}_1)$}};
-          \node at ($(d) + (90:0.5)$) {\contour{white}{$(t_2, \vec{n}_2)$}};
-          \node at ($(c) + (90:0.4)$) {\contour{white}{$(t_3, \vec{n}_3)$}};
-          \node at ($(b) + (90:0.5)$) {\contour{white}{$(t_4, \vec{n}_4)$}};
-          \node[particle, label=below:$P$] at (p) {};
-
-          \draw[->] (a) -- ++(165:0.5);
-          \draw[->] (d) -- ++(-70:0.5);
-          \draw[->] (c) -- ++(179:0.5);
-          \draw[->] (b) -- ++(-20:0.5);
-        \end{scope}
-      \end{scope}
-    \end{tikzpicture}
-\end{figure}
+    \includegraphics[scale=0.1]{scatter.png}
+  \end{figure}
 \end{frame}
 
 \begin{frame}
-  \frametitle{Расчёт точки столкновения}
-  \begin{itemize}
-  \item Для каждого примитива CSG-дерева строим след частицы на нём
-    (уравнение от $t$)
-  \item Объединяем следы по рекурсивным правилам
-    \begin{itemize}
-    \item $\tau(p, B_1 \cup B_2) = \tau(p, B_1) \cup \tau(p, B_2)$
-    \item $\tau(p, B_1 \cap B_2) = \tau(p, B_1) \cap \tau(p, B_2)$
-    \item $\tau(p, \overline{B}) = \overline{\tau(p, B)}$
-    \end{itemize}
-  \item Получаем итоговый след $\tau_\Sigma = \tau(p, B_\Sigma)$
-  \item Если $\tau_\Sigma \cap (-\Delta t, 0) = (t_h, 0)$, то
-    частица столкнулась с телом в момент времени $t_h < 0$, по
-    которому можно определить и точку столкновения
-  \end{itemize}
+  \frametitle{Граничные и начальные условия}
+  Для условия на свободных границах $\dom$ используется распределение
+  Максвелла—Больцмана (невозмущённая среда в окрестности $\dom$):
+  \begin{equation*}
+    \label{eq:maxwell-boltzmann}
+    f_M = f_{\vec{c}}(c_1, c_2, c_3) = \left(\frac{m}{2\pi k T}\right)^{3/2}
+    \exp\left(-\frac{m(c_1^2 + c_2^2 +c_3^2)}{2kT}\right)
+  \end{equation*}
+  \begin{equation*}
+    \label{eq:maxwell-boltzmann-component}
+    f_{c_i} = \frac{\beta}{\sqrt{\pi}}\exp(-\beta^2{c_i}^2),\:  \beta = \sqrt\frac{m}{2kT}
+  \end{equation*}
+  
+  Начальное распределение $f(\vec{x}, \vec{c}, 0)$: $\dom$ пуста, либо
+  $f = f_M$.
+  
+  Взаимодействие с поверхностью тела описывается ядром столкновения
+  $R(\vec{c}_0, \vec{c}_r)$:
+  \begin{equation*}
+    f^+(\vec{c}_r) \vec{c}_r = -\int_{\vec{c}_o \cdot
+      \vec{n} < 0}{R(\vec{c}_0, \vec{c}_r)}\vec{c}_0 \cdot
+    f^-(\vec{c}_0)\,d\vec{c}_0,\quad(\vec{c}_r\cdot\vec{n}>0).
+  \end{equation*}
+  $\vec{c}_r$ — скорость отражённой молекулы, $\vec{c}_0$ — скорость
+  падающей молекулы, $f^+$ — функция распределения по скоростям для
+  отражённых молекул, $f^-$ — функция распределения для падающих
+  молекул.
 \end{frame}
 
-\begin{frame}[fragile]
+\begin{frame}
+  \frametitle{Граничные условия на тело}
+  Диффузное отражение ($T_w$ — температура стенки):
+  \begin{equation*}
+    \begin{aligned}
+      R_D(\vec{c}_0, \vec{c}_r) &=
+      \frac{1}{2\pi}\left(\frac{m}{kT_w}\right)^2\exp\left(-\frac{m}{2kT_w}c^2_r\right),\\
+      f^+(\vec{c}_r) &= \left(\frac{m}{2\pi k
+          T_w}\right)^{3/2}\exp\left(-\frac{m}{2kT_w}c^2_r\right).
+    \end{aligned}
+  \end{equation*}
+  Модель Черчиньяни—Лемпис—Лорда ($\sigma_{\tau}, \alpha_n$ —
+  коэффициенты модели):
+  \begin{equation*}
+    \label{eq:cll-tau}
+    R_{C_{\tau}}(v_i, v_r) = \frac{1}{\sqrt{\pi \sigma_{\tau} (2-\sigma_{\tau})}}
+    \exp{\left(-\frac{(v_r-(1-\sigma_{\tau})v_i)^2}{\sigma_{\tau}(2-\sigma_{\tau})}\right)}.
+  \end{equation*} — для касательных компонент $\vec{c}$.
+  \begin{equation*}
+    R_{C_{n}}(u_i, u_r) = \frac{2 u_r}{\alpha_n}
+    \exp{\left(-\frac{u^2_r+(1-\alpha_n)u^2_i}{\alpha_n}\right)} \cdot
+    I_0\left(\frac{2 u_r u_i \sqrt{1-\alpha_n}}{\alpha_n}\right),
+  \end{equation*} — для нормальной компоненты.
+\end{frame}
+
+\begin{frame}
+  \frametitle{Граничные условия на тело (2)}
+  \begin{figure}[!h]
+    \centering
+    \includegraphics[scale=0.2]{boundary.png}
+  \end{figure}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Блок-схема ПСМ}
+  Метод прямого статистического моделирования имитирует процессы,
+  проходящие в газе, согласно законам распределения соответствующих
+  случайных величин.
+  \begin{figure}[!h]
+    \centering
+    \includegraphics[scale=0.3]{algo.png}
+  \end{figure}  
+\end{frame}
+
+\begin{frame}
+  \frametitle{Расчётная область}
+  \begin{figure}[!h]
+    \centering
+    \includegraphics[scale=0.2]{domain.png}
+  \end{figure}   
+\end{frame}
+
+\begin{frame}
+  \frametitle{Инъекция частиц на границе $\dom$ — метод объёмных
+    источников}
+  Для добавления частиц в систему используется шесть вспомогательных
+  подобластей числу граней $\dom$:
+  \begin{figure}[!h]
+    \centering
+    \includegraphics[scale=0.21]{sources.png}
+  \end{figure}    
+\end{frame}
+
+\begin{frame}
+  \frametitle{Инъекция частиц на границе $\dom$}
+  В каждой $\dom_i$ разыгрывается $N_i = \flowcon V_i / W_N$ частиц,
+  распределённых в пространстве равномерно, а по скоростям — согласно
+  $f_M$:
+ \begin{equation*}
+    f_{c_i} = \frac{\beta}{\sqrt{\pi}}\exp(-\beta^2{c_i}^2),\:  \beta = \sqrt\frac{m}{2kT}
+  \end{equation*}
+  \begin{figure}[!h]
+    \centering
+    \includegraphics[scale=0.2]{sources2.png}
+  \end{figure}    
+  Новые молекулы добавляются к системе рассматриваемых частиц.
+\end{frame}
+
+\begin{frame}
   \frametitle{Удаление частиц}
-  \begin{itemize}
-  \item После инъекции и движения многие частицы могли вылететь за
-    пределы $\Omega$ — удаляем их из массива имеющихся частиц
-  \item Предикат для проверки вылетевших частиц
-\begin{lstlisting}
-xmax >= x && x >= xmin &&
-ymax >= y && y >= ymin &&
-zmax >= z && z >= zmin
-\end{lstlisting}
-  \end{itemize}
+  После лагранжева этапа в системе остаются только те частицы, которые
+  лежат в основной области $\dom$:
+  \begin{equation*}
+    (x > x_{\min}) \land (x < x_{\max}) \land (y > y_{\min}) \land
+    (y < y_{\max}) \land (z > z_{\min}) \land (z < z_{\max}),
+  \end{equation*}
+  Остальные частицы удаляются.
 \end{frame}
 
 \begin{frame}
-  \frametitle{После лагранжева этапа}
-  \begin{figure}
-    \centering
-    \includegraphics[scale=0.2]{coll.png}
+  \frametitle{Установление потока}
+  Поток считается установившимся, если выполнен критерий
+    стабилизации:
+    \begin{equation*}
+      \abs{\frac{N}{N^-}} < \epsilon_N,
+    \end{equation*}
+    $N$ — число частиц на текущей итерации, $N^-$ — число частиц на
+    предыдущей итерации.
+\end{frame}
+
+\begin{frame}
+  \frametitle{Установление потока (2)}
+  \begin{figure}[!h]
+    \begin{tikzpicture}
+      \begin{axis}[ylabel=$N$, xlabel=$t$, y=0.0000999]
+        \addplot file{steady.txt};
+      \end{axis}
+    \end{tikzpicture}
   \end{figure}
 \end{frame}
 
 \begin{frame}
-  \frametitle{Столкновение молекул между собой}
-  \begin{itemize}
-  \item Сортируем частицы по ячейкам: $N$ частиц в зависимости от
-    своих положений распределяются по $N_c$ ячеек. В каждой $k$-й
-    ячейке окажется $N_c^k$ частиц.
-  \item Сталкиваются только частицы, относящиеся к одной ячейке
-    \begin{figure}
-      \centering
-      \includegraphics[scale=0.25]{cells.png}
-    \end{figure}
-  \item Для каждой пары частиц $\forall i, j$ в ячейке разыгрываем вероятность
-    столкновения (схема Бернулли, $O({N_c^k}^2)$) с известной частотой $\nu$
-    \begin{equation*}
-      P_{ij} = \frac{\nu \Delta t}{N_c^k} = \frac{W\sigma_{ij}\vec{c}_r\Delta t}{V_c}
+  \frametitle{Расчёт макропараметров в ячейке}
+  \begin{equation*}
+    \begin{aligned}
+        \vec{V} &= \avg{\vec{c}} = 
+        \frac{1}{N_C}\sum_{i = 1}^{N_C}{\vec{c}_i},\\
+        \rho &= nm = \frac{N_C}{V_C}\statw m,\\
+        p &= \frac{1}{3}\rho\avg{c'^2} = 
+        \frac{1}{3}\rho\sum_{i=1}^{N_C}(\vec{c}_i - \vec{V})^2,
+      \end{aligned}
     \end{equation*}
-    \begin{itemize}
-    \item $W$ — вес «депутата»
-    \item $V_c$ — объём ячейки
-    \item $\vec{c}_r$ — относительная скорость двух частиц
-    \item $\sigma_{ij}$ — сечение столкновения, зависящее от
-      используемой модели частиц
-    \end{itemize}
-  \end{itemize}
+    $N_C$ — количество частиц в ячейке, $V_C$ — объём ячейки.
 \end{frame}
 
 \begin{frame}
-  \frametitle{Что происходит в ячейке}
+  \frametitle{Выбор $\ts$, $\sps$, $\statw$}
+  Для газа в невозмущённом потоке определяются средние частота
+  столкновений $\cf$, длина свободного пробега $\fp$ и время между
+  столкновениями $\ft$:
+    \begin{equation*}
+      \begin{aligned}
+        \cf &= \avg{\ccs c_r} \flowcon,\:\fp = \frac{\avg{c'}}{\cf},\:\ft = {\cf}^{-1}\\
+        \fp &= \frac{1}{\sqrt{2} \pi d^2 \flowcon} \then \sps < \fp,\\
+        \ft &= \frac{1}{2d^2 \flowcon}\sqrt{\frac{m}{\pi k T}} \then \ts < \ft.
+      \end{aligned}
+    \end{equation*}
+  
+    Критерий выбора веса частиц $\statw$:
+    \begin{equation*}
+      \avg{N_C}\cdot\Kn_C \gg 1,
+    \end{equation*}
+    где $\Kn_C = \frac{\fp}{\sps}$, $\avg{N_C} = \frac{\flowcon V_C}{W_N}$.
+\end{frame}
+
+
+\begin{frame}
+  \frametitle{Верификация}
+  Обтекание цилиндра $\flowcon = 10^{21}, \flowtemp = 100K, \flowvel =
+  (1000, 0, 0), \Kn = 0.05, T_w = 300K$. Поле плотностей перед
+  цилиндром и линии уровня:
   \begin{figure}
     \centering
-    \includegraphics[scale=0.2]{sigma.png}
+    \includegraphics[scale=0.3]{verify1.png}
+    \includegraphics[scale=0.3]{verify11.png}
   \end{figure}
-  \begin{itemize}
-  \item Частота $\nu$ зависит от используемой модели
-  \item Ищем отношение объёма цилиндра высотой $\Delta t$ и площадью
-    основания $\sigma_{ij}$ к объёму всей ячейки
-  \item Испытания по схеме Бернулли — частицы сталкиваются, если
-    \begin{equation*}
-      P_{ij} > R[0,1]
-    \end{equation*}
-  \end{itemize}
 \end{frame}
+
 
 \begin{frame}
-  \frametitle{Что происходит в ячейке — трактовка}
-  \begin{itemize}
-  \item В пределах каждой ячейки эволюционирует $3 N_c^k$-координатный
-    марковский процесс столкновения частиц с заданной частотой
-  \item На эйлеровом этапе моделируется поведение внутри $N_c$ ячеек,
-    а значит $N_c$ марковских процессов
-  \item Процессы не зависят друг от друга
-  \item Моделирование выполняется параллельно (у каждого процесса свой
-    генератор случайных чисел)
-  \end{itemize}
-\end{frame}
-
-\begin{frame}
-  \frametitle{Модели частиц}
-  \begin{itemize}
-  \item Определяет:
-    \begin{itemize}
-    \item частоту столкновений $\nu(\sigma)$
-    \item модель взаимодействия частиц (что
-      происходит со скоростями после столкновения?)
-    \end{itemize}
-  \item Модель твёрдых сфер:
-    \begin{itemize}
-    \item $\sigma = \pi d^2$
-    \item Вектор $\vec{c}_r$ после столкновения распределён по
-      направлениями \emph{равномерно}
-    \item Скорости после столкновения:
-      \begin{equation*}
-        \begin{cases}
-          \vec{c}' = \vec{c} + [(\vec{c_1} - \vec{c})\vec{c}_r]\vec{c}_r,\\
-          \vec{c}'_1 = \vec{c}_1 + [(\vec{c_1} - \vec{c})\vec{c}_r]\vec{c}_r
-        \end{cases}
-      \end{equation*}
-    \end{itemize}
-  \item Есть модели с учётом при взаимодействии внутренней энергии и
-    другие
-  \end{itemize}
-\end{frame}
-
-\begin{frame}
-  \frametitle{Модели поверхности}
-  \begin{itemize}
-  \item Определяет взаимодействие частиц с поверхностью
-  \item Модель зеркального отражения:
-    \begin{itemize}
-    \item Молекула отскакивает от поверхности, как бильярдный шарик
-    \item $\vec{c}' = \vec{c} - 2\vec{n}(\vec{n} \cdot\vec{v})$
-    \end{itemize}
-  \item Есть модели диффузного отражения, с учётом температур и другие
-  \end{itemize}
-\end{frame}
-
-\begin{frame}
-  \frametitle{Вычисление макропараметров}
-  \begin{itemize}
-  \item Действуем по определению
-  \item Разбиение области на ячейки, осреднение параметров частиц в
-    каждой ячейке
-  \item Результат — распределение макропараметров
-  \end{itemize}
-\end{frame}
-
-\section{Реализация и результаты}
-
-\begin{frame}[fragile]
-  \frametitle{Входные данные программы}
-\begin{lstlisting}
-[Flow]
-t = 300
-
-n = 1e20
-fn = 1e14
-
-m = 29
-
-velocity = (1000, 0, 0)
-
-[Grid]
-hx = 0.1
-hy = 0.1
-hz = 0.1
-
-...
-\end{lstlisting}
-\end{frame}
-
-\begin{frame}[fragile]
-  \frametitle{Входные данные программы (тело)}
-\begin{lstlisting}
-  body = Intersection (Intersection (Intersection
-         (Intersection (Intersection
-       (Cone (1, 0, 0) (0, 0, 0) 0.3)
-       (Plane (0, 1, 0) 3))
-       (Cylinder (0.2, 0.8, 0) (0.3, 0.2, 0) 2.5))
-       (Cylinder (0.5, 0.5, 0) ((-0.3), 0.2, 0) 3))
-       (Cylinder (0.8, 0.2, 0) ((-0.3), 0.2, 0) 2.5))
-       (Cylinder (0.5, 0, 1) ((-0.3), 0.2, 0) 4)
-\end{lstlisting}
-
-\end{frame}
-
-\begin{frame}[fragile]
-  \frametitle{Выходные данные программы}
-  \begin{itemize}
-  \item Текстовый формат (дальше используем какую-нибудь программу
-    визуализации)
-  \end{itemize}
-\begin{lstlisting}
--0.95 -0.85 0.55 1019.4918599440547 0.35016376769650687 -13.604465334
--0.85 -0.85 0.55 1366.673053637682 -38.774232190222044 -185.471092957
--0.95 -0.75 0.55 1100.254884973527 -13.382653583679717 -63.7551895773
--0.85 -0.75 0.55 1363.7316003289795 7.254925630713765 -37.85531177083
-...
-\end{lstlisting}
-\end{frame}
-
-\begin{frame}[fragile,fragile]
-  \frametitle{Параллелизм}
-  \begin{itemize}
-  \item Основная идея: если есть набор данных и чистая функция, то
-    функция может применятся параллельно (\emph{Repa} +
-    \emph{parallel})
-\begin{lstlisting}
-parMap :: (a -> b) -> [a] -> [b]
-\end{lstlisting}
-Рантайм сам распределяет задачи по имеющимся потокам (ядрам).
-  \item Наши наборы данных — вектор частиц, либо вектор ячеек
-\begin{lstlisting}
-type Particle = (Point, Vec3)
-type Ensemble = R.Array R.U R.DIM1 Particle
-advance :: Monad m => Time -> Body -> Ensemble -> m Ensemble
-\end{lstlisting}
-\begin{lstlisting}
-parMap rpar (\(d, s) -> pureSpawnParticles d flow s) $
-                        zip [d1, d2, d3, d4, d5, d6]
-                            [s1, s2, s3, s4, s5, s6]
-\end{lstlisting}
-  \end{itemize}
-\end{frame}
-
-\begin{frame}
-  \frametitle{Анализ данных}
-  \begin{itemize}
-  \item \good{} Добавление молекул (до шести потоков для каждого
-    объёмного источника)
-  \item \bad{} Естественный барьер (объединение векторов)
-  \item \good{} Движение молекул и столкновения с телом
-  \item \good{} Удаление молекул
-  \item \bad{} Естественный барьер (сортировка молекул по ячейкам)
-  \item \good{} Столкновения в разных ячейках
-  \item Нужны некорреллированные генераторы случайных чисел на каждую ячейку
-  \item \good{} Расчёт макроскопических параметров в каждой ячейке
-  \end{itemize}
+  \frametitle{Верификация (2)}
+  Результаты Бёрда были получены с помощью программы для
+  осесимметричных сечений. В нашей постановке пришлось усечь цилиндр
+  плоскостями до четверти. Поле модуля скорости:
+  \begin{figure}
+    \centering
+    \includegraphics[scale=0.3]{verify2.png}
+  \end{figure}
 \end{frame}
 
 \begin{frame}
