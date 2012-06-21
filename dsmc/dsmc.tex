@@ -30,7 +30,7 @@
 
 \newcommand\avg[1]{\left\langle{#1}\right\rangle}
 
-\renewcommand\geq\geqslant
+\\renewcommand\geq\geqslant
 \renewcommand\leq\leqslant
 \newcommand{\pardiff}[2]{\frac{\partial{#1}}{\partial{#2}}}
 
@@ -372,12 +372,14 @@
     \Kn < 1$
   \item Имитируем поведение частиц, описанное уравнением Больцмана
   \item Расщепление:
-    \begin{itemize}
+    \begin{enumerate}
       \item бесстолкновительное движение, изменяющее их положение (лагранжев этап)
       \item столкновение между частицами, изменяющее их скорости (эйлеров этап)
-    \end{itemize}
+    \end{enumerate}
   \item Как молекулярная динамика, только взаимодействия учитываются
     стохастически
+  \item Одна модельная частица симулирует $W$ реальных для правильной
+    частоты столкновений
   \item Считаем, что взаимодействовать между собой могут лишь частицы,
     находящиеся в одной пространственной ячейке (потенциал
     взаимодействия ограничен)
@@ -411,10 +413,12 @@
   \frametitle{Сетка}
   \begin{itemize}
   \item Используем регулярную сетку с заданными шагами по $x, y, z$
+  \item Сетка используется для розыгрыша столкновений и для
+    макропараметров
   \end{itemize}
   \begin{figure}
     \centering
-    \includegraphics[scale=0.4]{grid.gif}
+    \includegraphics[scale=0.4]{grid.png}
   \end{figure}
 \end{frame}
 
@@ -587,7 +591,7 @@ zmax >= z && z >= zmin
   \frametitle{Что происходит в ячейке}
   \begin{figure}
     \centering
-    \includegraphics[scale=0.25]{sigma.png}
+    \includegraphics[scale=0.2]{sigma.png}
   \end{figure}
   \begin{itemize}
   \item Частота $\nu$ зависит от используемой модели
