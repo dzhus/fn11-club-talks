@@ -29,6 +29,7 @@
 \newcommand\tw\textwidth
 \newcommand\neword\emph
 \newcommand\code\texttt
+\newcommand\unif[2]{R_{[{#1};{#2}]}}
 
 \newcommand\avg[1]{\left\langle{#1}\right\rangle}
 
@@ -245,7 +246,7 @@
     \includegraphics[scale=0.1]{coll.png}
   \end{figure}
   $\cf = \avg{\ccs c_r} n$ — частота столкновений, $\statw$ —
-  статистический вес частиц.
+  статистический вес частиц. Для твёрдых сфер $\ccs = \pi d^2$.
 \end{frame}
 
 \begin{frame}
@@ -275,7 +276,7 @@
   \begin{equation*}
     \sigma = d^2/4,
   \end{equation*}
-  Так что $\vec{c'}_r$ — изотропный случайный вектор.
+  Так что $\vec{c'}_r$ — изотропный случайный вектор. $c'_r = c_r$.
   \begin{figure}[!h]
     \centering
     \includegraphics[scale=0.1]{scatter.png}
@@ -360,7 +361,7 @@
   \frametitle{Расчётная область}
   \begin{figure}[!h]
     \centering
-    \includegraphics[scale=0.2]{domain.png}
+    \includegraphics[scale=0.4]{domain.png}
   \end{figure}   
 \end{frame}
 
@@ -368,7 +369,7 @@
   \frametitle{Инъекция частиц на границе $\dom$ — метод объёмных
     источников}
   Для добавления частиц в систему используется шесть вспомогательных
-  подобластей числу граней $\dom$:
+  подобластей по числу граней $\dom$:
   \begin{figure}[!h]
     \centering
     \includegraphics[scale=0.21]{sources.png}
@@ -391,6 +392,129 @@
 \end{frame}
 
 \begin{frame}
+  \frametitle{Движение частиц}
+  Для каждой частицы определяется новые положение $\vec{x}_r$ и,
+  возможно, скорость $\vec{c}_r$. Каждая частица движется в
+  пространстве без столкновений с другими частицами, но может
+  столкнуться с телом:
+  \begin{figure}[!h]
+    \centering
+    \includegraphics[scale=0.3]{lagr.png}
+  \end{figure}
+  Требуется учесть граничные условия, заданные ядром рассеяния $R$.
+\end{frame}
+
+\begin{frame}
+  \frametitle{Столкновение частицы с поверхностью}
+  В пределах лагранжева этапа до столкновения с телом траектория частицы
+  описывается прямой:
+  \begin{equation*}
+    \vec{x}(t) = \vec{x}_0 + \vec{c}_0 \cdot t.
+  \end{equation*}
+  \begin{figure}[!h]
+    \centering
+    \includegraphics[scale=0.23]{reflect.png}
+  \end{figure}
+  \begin{equation}
+    \label{eq:hit-taus}
+    \begin{aligned}
+      \vec{x}_h &= \vec{x}_0 + \vec{c}_0 \cdot (\ts - \tau_+),\\
+      \vec{x}_r &= \vec{x}_h + \vec{c}_r \cdot \tau_+,\\
+      \vec{x}_r &= \vec{x}_0 + \vec{c}_0 \cdot (\ts - \tau_+) + \vec{c}_r \cdot \tau_+,\\
+    \end{aligned}
+  \end{equation}
+  так что требуется определить $\tau_+$ и $\vec{c}_r$. Если
+  столкновений не было, то $\vec{x}_r = \vec{x}_0 + \vec{c}_0 \cdot
+  \ts$, $\vec{c}_r = \vec{c}_0$.
+\end{frame}
+
+\begin{frame}
+  \frametitle{Трассировка лучей для $\tau_+$ (1)}
+  Для определения $\tau_+$ необходимо определить точку пересечения
+  траектории частицы с поверхностью тела. Телом может быть:
+  \begin{itemize}
+  \item Примитив $\Pi$, такой как полупространство, шар, внутренность
+    цилиндра и др.
+  \item Композиция других тел $B_i$, объединённых с помощью множественных
+    операций объединения, пересечения или дополнения:
+    \begin{equation*}
+      \begin{aligned}
+        B &= B_1 \cup B_2,\\
+        B &= B_1 \cap B_2,\\
+        B &= \neg B_1.
+      \end{aligned}
+    \end{equation*}
+  \end{itemize}
+  \begin{figure}[!h]
+    \centering
+    \includegraphics[scale=0.2]{csg.png}
+  \end{figure}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Трассировка лучей для $\tau_+$ (2)}
+  Считается, что для любого \emph{примитива} $B$ и точки $P$
+  определена функция $\tau(P, B)$:
+  \begin{figure}[!h]
+    \centering
+    \includegraphics[scale=0.3]{trace.png}
+  \end{figure}
+  Для поверхностей второго порядка её построение равносильно решению
+  квадратного уравнения.
+\end{frame}
+
+\begin{frame}
+  \frametitle{Трассировка лучей для $\tau_+$ (2)}
+  Для сложных тел $B$ результаты $\tau$ классифицируются по
+  рекурсивным правилам:
+  \begin{equation}
+    \label{eq:trace-compose}
+    \begin{aligned}
+      \tr(P, B_1 \cup B_2) &= \tr(P, B_1) \cup \tr(P, B_2),\\
+      \tr(P, B_1 \cap B_2) &= \tr(P, B_1) \cap \tr(P, B_2),\\
+      \tr(P, \neg{B}) &= \neg{\tr(P, B)}
+    \end{aligned}
+  \end{equation}
+  \begin{figure}[!h]
+    \centering
+    \includegraphics[scale=0.2]{trace2.png}
+  \end{figure}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Трассировка лучей для $\tau_+$ (3)}
+  Для определения $\tau_+$ выбирается минимальное значение из $\tau(P,
+  B) \cap (-\ts; 0)$:
+  \begin{figure}[!h]
+    \centering
+    \includegraphics[scale=0.3]{trace3.png}
+  \end{figure}  
+  $\tau_+ = -t_h$
+\end{frame}
+
+\begin{frame}
+  \frametitle{Построение $\vec{c}_r$ для учёта граничных условий}
+  Вектор $\vec{c}_r$ определяется согласно R. Например, для диффузной модели:
+  \begin{equation*}
+    \begin{aligned}
+      R_D(\vec{c}_0, \vec{c}_r) &=
+      \frac{1}{2\pi}\left(\frac{m}{kT_w}\right)^2\exp\left(-\frac{m}{2kT_w}c^2_r\right),\\
+      f^+(\vec{c}_r) &= \left(\frac{m}{2\pi k
+          T_w}\right)^{3/2}\exp\left(-\frac{m}{2kT_w}c^2_r\right).
+    \end{aligned}
+  \end{equation*}
+  Если $\vec{c}_r = (u, v, w)$, где $u$ — нормальная компонента, $v,
+  w$ — касательные компоненты в точке столкновения, то вычислением
+  моментов от $f^+$ можно получить:
+  \begin{align*}
+    F(u) &= 2\beta^2 u \exp(-\beta^2 u^2),\\
+    v &\sim N(0, 1/(2\beta^2)),\\
+    v &\sim N(0, 1/(2\beta^2)).
+  \end{align*}
+  Определением $\vec{c}_r$ и $\vec{x}_r$ завершается лагранжев этап.
+\end{frame}
+
+\begin{frame}
   \frametitle{Удаление частиц}
   После лагранжева этапа в системе остаются только те частицы, которые
   лежат в основной области $\dom$:
@@ -402,7 +526,53 @@
 \end{frame}
 
 \begin{frame}
+  \frametitle{Розыгрыш столкновений}
+  В каждой ячейке оказывается $N_C$ частиц. Необходимо разыграть
+  реализацию марковского процесса столкновений.
+  \begin{figure}[!h]
+    \centering
+    \includegraphics[scale=0.1]{coll.png}
+  \end{figure}
+  
+  Существуют различные схемы для реализации марковского процесса в
+  ячейке.
+
+  В самой простой схеме Бернулли для каждой пары $i, j$ выполняется проверка:
+  \begin{equation*}
+    P_{ij} = \frac{\statw c_r^{(i,j)}\pi d^2\ts}{V_C} > \unif{0}{1}.
+  \end{equation*}
+  Если $P_{ij} > \unif{0}{1}$, то столкновение произошло.
+\end{frame}
+
+\begin{frame}
+  \frametitle{Розыгрыш столкновений (2)}
+  Если столкновение произошло, то разыгрывается случайный вектор
+  $\vec{c'}_r$:
+  \begin{align*}
+    \alpha_1 &\sim \unif{0}{1}\\
+    \alpha_2 &\sim \unif{0}{2\pi}\\
+    \cos\theta &= 1 - 2\alpha_1\\
+    \sin\theta &= \sqrt{1 - \cos^2\theta}\\
+    \vec{c'}_r &= c_r \begin{pmatrix}
+      \cos\theta\\
+      \sin\theta\cdot \cos\alpha_2\\
+      \sin\theta\cdot \sin\alpha_2
+    \end{pmatrix}
+  \end{align*}
+Затем определяем скорости частиц после столкновения:
+\begin{equation}
+  \label{eq:postcoll-velocities}
+  \begin{aligned}
+    \vec{c'}_1 &= \frac{\vec{c}_1 + \vec{c}_2 + \vec{c'}_r}{2},\\
+    \vec{c'}_2 &= \frac{\vec{c}_1 + \vec{c}_2 - \vec{c'}_r}{2}.\\
+  \end{aligned}
+\end{equation}
+Расчётом столкновений в каждой ячейке завершается эйлеров этап.
+\end{frame}
+
+\begin{frame}
   \frametitle{Установление потока}
+  Итерации повторяются до тех пор, пока поток не установится.
   Поток считается установившимся, если выполнен критерий
     стабилизации:
     \begin{equation*}
@@ -410,6 +580,9 @@
     \end{equation*}
     $N$ — число частиц на текущей итерации, $N^-$ — число частиц на
     предыдущей итерации.
+
+    После установления потока можно переходить к расчёту
+    макропараметров.
 \end{frame}
 
 \begin{frame}
@@ -435,6 +608,9 @@
       \end{aligned}
     \end{equation*}
     $N_C$ — количество частиц в ячейке, $V_C$ — объём ячейки.
+
+    Можно также осреднять макропараметры по времени за некоторый
+    период после установления потока.
 \end{frame}
 
 \begin{frame}
@@ -461,13 +637,14 @@
 \begin{frame}
   \frametitle{Верификация}
   Обтекание цилиндра $\flowcon = 10^{21}, \flowtemp = 100K, \flowvel =
-  (1000, 0, 0), \Kn = 0.05, T_w = 300K$. Поле плотностей перед
-  цилиндром и линии уровня:
+  (1000, 0, 0), \Kn = 0.05, T_w = 300K$. Поле безразмерной плотности
+  $\rho/\rho_{\infty}$ перед цилиндром и линии уровня:
   \begin{figure}
     \centering
     \includegraphics[scale=0.3]{verify1.png}
     \includegraphics[scale=0.3]{verify11.png}
   \end{figure}
+  Изображение поля построено в Paraview
 \end{frame}
 
 
@@ -479,6 +656,20 @@
   \begin{figure}
     \centering
     \includegraphics[scale=0.3]{verify2.png}
+  \end{figure}
+  Изображение поля построено в Paraview
+\end{frame}
+
+
+\begin{frame}
+  \frametitle{Результаты}
+  \begin{itemize}
+  \item Простое тело, аргон, $T = 200K, \vec{V} = (1200, 0, 0), m =
+    21, n = 10^{20}, W = 10^{14}, \Delta t = 10^{-8}, T_w = 500K$
+  \end{itemize}
+  \begin{figure}
+    \centering
+    \includegraphics[scale=0.2]{b10.png}
   \end{figure}
 \end{frame}
 
